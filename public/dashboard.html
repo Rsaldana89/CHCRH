@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Sistema CHC</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="logochc.png" alt="Logo" class="logo">
+            Panel Personal CHC
+            <span class="version-info">Versión 1.0 Alpha</span> <!-- Agregamos la versión aquí -->
+        </h1>
+        <!-- Barra de Herramientas -->
+        <div class="toolbar">
+            <a href="asistencias.html">
+                <img src="asistencias.png" alt="Asistencias" class="icono-nav">
+                Admon. Asistencias
+            </a>
+            <a href="dashboard.html">
+                <img src="vacaciones.png" alt="Vacaciones" class="icono-nav">
+                Admon. Vacaciones
+            </a>
+            <a href="admon.html">
+                <img src="personal.png" alt="Personal" class="icono-nav">
+                Admon. Personal
+            </a>
+        </div>
+
+        <div class="user-info">
+            <p class="info-box" id="username"></p>
+            <p class="info-box">Rol: <span id="user-role"></span></p>
+        </div>
+
+        <!-- Módulo de Vacaciones -->
+        <div id="vacations-module" class="module" style="display: none;">
+            <h2>Vacaciones</h2>
+
+            <!-- Recuadro de Búsqueda -->
+            <div class="search-container">
+                <input type="text" id="vacation-search-input" placeholder="Buscar por nombre o número de empleado">
+                <button onclick="searchVacation()">Buscar</button>
+
+                <!-- Combobox para seleccionar departamento -->
+                <select id="vacation-department-filter" onchange="searchVacation()">
+                    <option value="">Todos los departamentos</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table id="vacation-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTableBy('employee_number')">ID</th>
+                            <th onclick="sortTableBy('department_name')">Departamento</th>
+                            <th onclick="sortTableBy('full_name')">Nombre</th>
+                            <th>Fecha de Ingreso</th>
+                            <th>Fecha de Reingreso</th> <!-- Nueva columna de Fecha de Reingreso -->
+                            <th>Días de Vacaciones Correspondientes</th>
+                            <th>Días Pendientes del Periodo Anterior</th>
+                            <th>Días Tomados</th>
+                            <th>Días Restantes</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Las filas se generarán dinámicamente con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Botón para exportar todos los empleados -->
+            <div class="export-all-container">
+                <button class="export-all-btn" onclick="exportAllEmployeesData()">Exportar Todos</button>
+            </div>
+
+            <a id="logout-btn" class="logout-btn" onclick="logout()">Cerrar Sesión</a>
+        </div>
+
+        <script>
+let personalData = [];
+let filteredData = [];
+let editMode = {};  // Objeto para rastrear el estado de edición por empleado
+let sortDirection = { employee_number: true, full_name: true, department_name: true }; // Dirección de ordenación
+
+document.addEventListener('DOMContentLoaded', function () {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('No estás autenticado. Por favor, inicia sesión.');
+        window.location.href = '/login.html';
+    } else {
+        fetch('/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').textContent = data.full_name;
+            document.getElementById('user-role').textContent = data.role;
+
+            if (data.role === 'admin') {
+                document.getElementById('personal-management-link').style.display = 'inline';
+            }
+        })
+    }
+
+    document.getElementById('vacation-search-input').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            searchVacation();
+        }
+    });
+
+    showVacations();
+    populateVacationDepartmentSelect();
+});
+
+function populateVacationDepartmentSelect() {
+    const departments = [
+    "ADMINISTRATIVOS", "ATENCION A NEGOCIOS", "CEDIS", "COMPRAS", "EMPAQUE GRANOS", 
+    "EYE ADMINISTRATIVO", "EYE MANO DE OBRA 1ER TURNO", "EYE MANO DE OBRA 2DO TURNO", 
+    "MANTENIMIENTO", "SISTEMAS", "ALCANFORES", "ANDADORES", "ATELIER", 
+    "AV CIMATARIO", "AV DE LA LUZ", "CAMPO MILITAR", "CANDILES", 
+    "CANDILES II", "CANDILES III", "CARRILLO", "CERRITO COLORADO", 
+    "CERRITO COLORADO II", "CERRITO COLORADO III", "CIUDAD DEL SOL", 
+    "CIUDAD DEL SOL II", "EL MIRADOR", "EL REFUGIO", "EL REFUGIO II", 
+    "EL SOL", "EL TINTERO", "ENSUEÑO", "EXHACIENDA EL TINTERO", 
+    "FUENTES DE BALVANERA", "GEO PLAZAS", "HACIENDA LA CRUZ", 
+    "INSURGENTES", "JACAL", "JARDINES DE LA HACIENDA", "JURIQUILLA", 
+    "JURIQUILLA II", "LA PRADERA I", "LA PRADERA II", "LOARCA", 
+    "LOMAS DEL MARQUES", "LOS HEROES", "SUC. LOS HUERTOS", "LOS OLVERA", 
+    "MERCADO DE ABASTOS", "MILENIO", "MIRANDA", "PANADERIA", 
+    "PASEOS DE SAN MIGUEL", "PASEOS DEL PEDREGAL", "PEDRO ESCOBEDO", 
+    "PENDRO ESCOBEDO II", "PIE DE LA CUESTA", "PIE DE LA CUESTA II", 
+    "PIRAMIDES", "PLATON", "PLAZA BELEN", "PLAZA CANDILES", 
+    "PLAZA PALMARES", "PLAZA VERONA", "PLAZAS DEL SOL", "PRESIDENTES", 
+    "PROLONGACION PASTEUR", "PUERTA NAVARRA", "REAL DE LA LOMA", 
+    "REAL DEL BOSQUE", "REAL SOLARE", "REFORMA AGRARIA", 
+    "RINCONES DEL MARQUES", "SAN ISIDRO", "SAN JUAN DE LETRAN", 
+    "SAN MIGUEL DE ALLENDE", "SAN MIGUEL DE ALLENDE II", "SAN PABLO", 
+    "SAN ROQUE", "SANTA MARIA MAGDALENA", "SANTUARIOS", "SATELITE", 
+    "SATELITE II", "SAUCES", "SAUCES II", "SONTERRA", 
+    "TECNOLOGICO", "TEJEDA", "TEJEDA II", "VALLE DE SANTIAGO", 
+    "VALLE DIAMANTE", "VILLAS DE SANTIAGO", "VIÑEDOS", "VISTA REAL", 
+    "ZAKIA", "ZIBATA", "SUPERVISION", "SUPERVISION DE SUCURSALES"
+];
+    const selectElement = document.getElementById('vacation-department-filter');
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        selectElement.appendChild(option);
+    });
+}
+
+function showVacations() {
+    fetch('/admin/personal', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        personalData = data;
+        filteredData = [...personalData];  // Inicializar filteredData con los datos completos
+        renderVacationTable(filteredData); // Mostrar los datos completos al principio
+        document.getElementById('vacations-module').style.display = 'block';
+    })
+    .catch(error => console.error('Error al cargar los datos de vacaciones:', error));
+}
+
+function searchVacation() {
+    const searchQuery = document.getElementById('vacation-search-input').value.toLowerCase();
+    const selectedDepartment = document.getElementById('vacation-department-filter').value;
+
+    filteredData = personalData.filter(emp => {
+        const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || emp.employee_number.toString().includes(searchQuery);
+        const matchesDepartment = !selectedDepartment || emp.department_name === selectedDepartment;
+        return matchesSearchQuery && matchesDepartment;
+    });
+
+    renderVacationTable(filteredData);
+}
+
+function renderVacationTable(data) {
+    const tbody = document.querySelector('#vacation-table tbody');
+    tbody.innerHTML = '';
+
+    data.forEach(emp => {
+        const yearsWorked = calculateYearsWorked(emp.start_date, emp.fecha_reingreso);
+        const vacationDays = calculateVacationDays(yearsWorked);
+
+        // Usar los valores de la base de datos para días tomados y días pendientes
+        // Asegúrate de que no sean null o undefined antes de usarlos
+        const daysPending = emp.days_pending != null ? emp.days_pending : 0;
+        const daysTaken = emp.days_taken != null ? emp.days_taken : 0;
+
+        // Determinar si estamos en modo edición para este empleado
+        const isEditing = editMode[emp.employee_number] || false;
+
+        const row = `
+            <tr>
+                <td>${emp.employee_number.toString().padStart(5, '0')}</td>
+                <td>${emp.department_name}</td>
+                <td>${emp.full_name}</td>
+                <td>${formatDate(emp.start_date)}</td>
+                <td>${emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : ''}</td> <!-- Mostrar Fecha de Reingreso -->
+                <td>${vacationDays}</td>
+                <td>${isEditing ? `<input type="number" value="${daysPending}" min="0" max="60" id="pending-${emp.employee_number}">` : daysPending}</td>
+                <td>${isEditing ? `<input type="number" value="${daysTaken}" min="0" max="60" id="taken-${emp.employee_number}">` : daysTaken}</td>
+                <td>${vacationDays - daysTaken + daysPending}</td>
+                <td>
+                    <button class="edit-vacation-btn" onclick="toggleEditMode(${emp.employee_number})">
+                        ${isEditing ? 'Guardar' : 'Editar'}
+                    </button>
+                    <button class="export-btn" onclick="exportEmployeeData(${emp.employee_number})">Exportar</button>
+                </td>
+            </tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
+}
+
+function formatDate(dateString) {
+    if (!dateString) {
+        return ''; // Manejar fechas nulas o vacías
+    }
+
+    const date = new Date(dateString);
+
+    if (isNaN(date.getTime())) {
+        // Manejar el caso en que la fecha no sea válida
+        return 'Fecha inválida';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mes comienza en 0
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${day}-${month}-${year}`;
+}
+
+function toggleEditMode(employeeNumber) {
+    if (editMode[employeeNumber]) {
+        // Guardar cambios
+        const pendingInput = document.getElementById(`pending-${employeeNumber}`);
+        const takenInput = document.getElementById(`taken-${employeeNumber}`);
+        const vacationDaysCell = pendingInput.closest('tr').querySelectorAll('td')[5]; // Celda de días de vacaciones correspondientes
+
+        const pendingValue = parseInt(pendingInput.value);
+        const takenValue = parseInt(takenInput.value);
+
+        // Obtener los días de vacaciones directamente de la celda en la tabla (donde ya está calculado)
+        const vacationDays = parseInt(vacationDaysCell.textContent);
+
+        if (pendingValue >= 0 && pendingValue <= 60 && takenValue >= 0 && takenValue <= 60) {
+            const employee = personalData.find(emp => emp.employee_number === employeeNumber);
+            const newRemainingDays = vacationDays - takenValue + pendingValue;
+
+            const confirmMessage = `Los días restantes de vacaciones se actualizarán a ${newRemainingDays}. ¿Está seguro?`;
+
+            if (confirm(confirmMessage)) {
+                // Actualizar los valores
+                employee.days_pending = pendingValue;
+                employee.days_taken = takenValue;
+
+                // Recalcular los días restantes
+                employee.days_remaining = newRemainingDays;
+
+                // Llamar a la API para guardar en la base de datos
+                fetch(`/admin/personal/vacaciones/${employeeNumber}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        days_pending: pendingValue,
+                        days_taken: takenValue
+                    })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    alert(result.message);
+                    editMode[employeeNumber] = false;
+                    renderVacationTable(filteredData);  // Mantener el subconjunto filtrado
+                })
+                .catch(error => {
+                    console.error('Error al actualizar los datos de vacaciones:', error);
+                });
+            }
+        } else {
+            alert('Los valores deben estar entre 0 y 60.');
+        }
+    } else {
+        // Habilitar edición
+        editMode[employeeNumber] = true;
+        renderVacationTable(filteredData);  // Mantener el subconjunto filtrado
+    }
+}
+
+function sortTableBy(field) {
+    if (field === 'employee_number') {
+        filteredData.sort((a, b) => {
+            return sortDirection[field] 
+                ? a.employee_number - b.employee_number 
+                : b.employee_number - a.employee_number;
+        });
+    } else if (field === 'full_name') {
+        filteredData.sort((a, b) => {
+            return sortDirection[field] 
+                ? a.full_name.localeCompare(b.full_name) 
+                : b.full_name.localeCompare(a.full_name);
+        });
+    } else if (field === 'department_name') {
+        filteredData.sort((a, b) => {
+            return sortDirection[field] 
+                ? a.department_name.localeCompare(b.department_name) 
+                : b.department_name.localeCompare(a.department_name);
+        });
+    }
+
+    sortDirection[field] = !sortDirection[field]; // Alternar la dirección de la ordenación
+    renderVacationTable(filteredData); // Renderizar la tabla con los datos ordenados
+}
+
+function calculateYearsWorked(startDate, reentryDate) {
+    const fechaInicio = reentryDate ? new Date(reentryDate) : new Date(startDate);
+    const fechaActual = new Date();
+
+    let yearsWorked = fechaActual.getFullYear() - fechaInicio.getFullYear();
+    let monthDiff = fechaActual.getMonth() - fechaInicio.getMonth();
+    let dayDiff = fechaActual.getDate() - fechaInicio.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        yearsWorked--;
+    }
+    return yearsWorked;
+}
+
+function calculateVacationDays(yearsWorked) {
+    if (yearsWorked < 1) return 0;
+    if (yearsWorked === 1) return 12;
+    if (yearsWorked === 2) return 14;
+    if (yearsWorked === 3) return 16;
+    if (yearsWorked === 4) return 18;
+    if (yearsWorked === 5) return 20;
+    if (yearsWorked >= 6 && yearsWorked <= 10) return 22;
+    if (yearsWorked >= 11 && yearsWorked <= 15) return 24;
+    if (yearsWorked >= 16 && yearsWorked <= 20) return 26;
+    if (yearsWorked >= 21 && yearsWorked <= 25) return 28;
+    if (yearsWorked >= 26 && yearsWorked <= 30) return 30;
+    if (yearsWorked >= 31) return 32; 
+    return 0;
+}
+
+function escapeCSVField(value) {
+    if (typeof value === 'string') {
+        return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+}
+
+function exportEmployeeData(employeeNumber) {
+    const employee = personalData.find(emp => emp.employee_number === employeeNumber);
+
+    // Calcula los datos necesarios
+    const yearsWorked = calculateYearsWorked(employee.start_date);
+    const vacationDays = calculateVacationDays(yearsWorked);
+    const daysPending = employee.days_pending || 0;
+    const daysTaken = employee.days_taken || 0;
+    const daysRemaining = vacationDays - daysTaken + daysPending;
+
+    // Escapar campos
+    const fullName = escapeCSVField(employee.full_name);
+
+    // Prepara los datos para el CSV, incluyendo el BOM al inicio
+    const csvContent = '\uFEFF' + `ID,Nombre,Fecha de Ingreso,Días Correspondientes,Días Pendientes,Días Tomados,Días Restantes\n` +
+                       `${employee.employee_number},${fullName},${formatDate(employee.start_date)},${vacationDays},${daysPending},${daysTaken},${daysRemaining}`;
+
+    // Crea un Blob con el contenido CSV y la codificación correcta
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Crea un enlace temporal para descargar el archivo
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Empleado_${employee.employee_number}.csv`);
+    document.body.appendChild(link);
+
+    // Inicia la descarga y remueve el enlace
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportAllEmployeesData() {
+    let csvContent = '\uFEFF' + `ID,Nombre,Fecha de Ingreso,Días Correspondientes,Días Pendientes,Días Tomados,Días Restantes\n`;
+
+    personalData.forEach(employee => {
+        const yearsWorked = calculateYearsWorked(employee.start_date);
+        const vacationDays = calculateVacationDays(yearsWorked);
+        const daysPending = employee.days_pending || 0;
+        const daysTaken = employee.days_taken || 0;
+        const daysRemaining = vacationDays - daysTaken + daysPending;
+
+        const fullName = escapeCSVField(employee.full_name);
+
+        csvContent += `${employee.employee_number},${fullName},${formatDate(employee.start_date)},${vacationDays},${daysPending},${daysTaken},${daysRemaining}\n`;
+    });
+
+    // Crea un Blob y descarga el archivo como antes
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Empleados_Todos.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Lógica para cerrar sesión
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+}
+
+
+        </script>
+
+    </body>
+</html>

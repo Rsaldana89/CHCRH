@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión a Sistema de Incidencias CHC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fef6ba; /* Fondo de la pantalla */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #800020; /* Color vino para el recuadro */
+            color: #ffffff; /* Texto en blanco */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffffff; /* Título en blanco */
+        }
+        .login-container label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            color: #ffffff; /* Etiquetas en blanco */
+        }
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            color: #000000; /* Texto en negro dentro de los campos */
+        }
+        .login-container input[type="submit"] {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .login-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: red;
+            margin-bottom: 15px;
+            display: none; /* Se mostrará solo si hay un error */
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Ícono de la empresa -->
+        <img src="logochc.png" alt="Logo de la Empresa" class="logo">
+        
+        <h2>Inicio de Sesión a Sistema de Incidencias CHC</h2>
+        <div id="error-message" class="error-message"></div>
+        <form id="login-form">
+            <label for="username">Nombre de Usuario:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required>
+
+            <input type="submit" value="Iniciar Sesión">
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe de manera predeterminada
+
+            const formData = new FormData(form);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error) {
+                    // Mostrar mensaje de error si lo hay
+                    errorMessage.textContent = result.error;
+                    errorMessage.style.display = 'block';
+                } else {
+                    // Almacenar el token en localStorage y redirigir a la página protegida
+                    localStorage.setItem('token', result.token);
+                    window.location.href = '/dashboard.html';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
