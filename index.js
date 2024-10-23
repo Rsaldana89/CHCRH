@@ -353,6 +353,12 @@ app.get('/admin/attendances', authenticateToken, (req, res) => {
     });
 });
 
+// Ruta para el endpoint raíz
+app.get('/', (req, res) => {
+    res.send('¡Bienvenido a mi aplicación!');
+});
+
+
 app.listen(port, '0.0.0.0', () => {
      console.log(`Servidor corriendo en http://0.0.0.0:${port}`);
 });
