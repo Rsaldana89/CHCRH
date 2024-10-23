@@ -1,0 +1,12 @@
+# Ignorar archivos de configuración sensibles
+.env
+
+# Ignorar la carpeta node_modules
+node_modules/
+
+# Ignorar archivos de logs
+*.log
+
+# Ignorar archivos de configuración de sistema
+.DS_Store
+
