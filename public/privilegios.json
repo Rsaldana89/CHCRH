@@ -1,0 +1,76 @@
+{
+  "roles": {
+    "admin": {
+      "managerchc": {
+        "departments": ["Todos"]
+      },
+      "adminrh": {
+        "departments": ["Todos"]
+      },
+      "managerrh": {
+        "departments": ["Todos"]
+      }
+    },
+    "user": {
+      "adminMQ": {
+        "departments": ["Todos"]
+      },
+      "adminnomina": {
+        "departments": ["Todos"]
+      }
+    },
+    "manager": {
+      "asminSI": {
+        "departments": ["Todos"]
+      },
+      "managerEYE": {
+        "departments": ["Solo departamentos que empiezan con EYE"]
+      },
+      "jefefinanzas": {
+        "departments": ["ADMINISTRATIVOS", "MERCADOTECNIA"]
+      },
+      "jefecedis": {
+        "departments": ["CEDIS"]
+      },
+      "userSI": {
+        "departments": ["Todos"]
+      },
+      "supervision1": {
+        "departments": [
+          "ATELIER", "CERRITO COLORADO II", "CIUDAD DEL SOL", "CIUDAD DEL SOL II",
+          "JURIQUILLA", "JURIQUILLA II", "LOARCA", "LOS HUERTOS", "PASEOS DE SAN MIGUEL",
+          "PASEOS DEL PEDREGAL", "PIE DE LA CUESTA", "PIE DE LA CUESTA II", "PLATON",
+          "PLAZA BELEN", "PUERTA NAVARRA", "REAL DE LA LOMA", "SAN ISIDRO",
+          "SAN MIGUEL DE ALLENDE", "SAN MIGUEL DE ALLENDE II", "VALLE DE SANTIAGO",
+          "VILLAS DE SANTIAGO", "SAN JUAN DEL RIO"
+        ]
+      },
+      "supervision2": {
+        "departments": [
+          "ANDADORES", "CANDILES", "CANDILES II", "CANDILES III", "FUENTES DE BALVANERA",
+          "JACAL", "LOS OLVERA", "MERCADO DE ABASTOS", "PIRAMIDES", "PLAZA CANDILES",
+          "PLAZA PALMARES", "PLAZAS DEL SOL", "PRESIDENTES", "PROLONGACION PASTEUR",
+          "REAL DEL BOSQUE", "REFORMA AGRARIA", "SAN JUAN DE LETRAN", "SANTUARIOS",
+          "TEJEDA", "TEJEDA II", "VALLE DIAMANTE", "VISTA REAL"
+        ]
+      },
+      "supervision3": {
+        "departments": [
+          "AV DE LA LUZ", "CAMPO MILITAR", "CARRILLO", "CERRITO COLORADO", 
+          "CERRITO COLORADO III", "EL SOL", "ENSUEÑO", "GEO PLAZAS", "INSURGENTES",
+          "JARDINES DE LA HACIENDA", "PLAZA VERONA", "SANTA MARIA MAGDALENA", 
+          "SATELITE", "SATELITE II", "SAUCES", "SAUCES II", "SONTERRA", 
+          "TECNOLOGICO", "TINTERO", "TINTERO II", "VIÑEDOS"
+        ]
+      },
+      "supervision4": {
+        "departments": [
+          "ALCANFORES", "AV CIMATARIO", "EL MIRADOR", "EL REFUGIO", "EL REFUGIO II",
+          "HACIENDA LA CRUZ", "LA PRADERA I", "LA PRADERA II", "LOMAS DEL MARQUES",
+          "LOS HEROES", "MILENIO", "MIRANDA", "PEDRO ESCOBEDO", "PEDRO ESCOBEDO II",
+          "REAL SOLARE", "RINCONES DEL MARQUES"
+        ]
+      }
+    }
+  }
+}

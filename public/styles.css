@@ -1,0 +1,482 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #e0f7fa; /* Azul claro suave para el fondo */
+}
+
+.container {
+    max-width: calc(100% - 200px); /* 100px de margen a cada lado */
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* Fondo blanco */
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0277bd; /* Azul oscuro */
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #4a90e2, #0077c2); /* Degradado de azul */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #01579b; /* Borde azul más oscuro */
+}
+
+.toolbar a {
+    color: #ffffff; /* Blanco */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.toolbar a:hover {
+    text-decoration: underline;
+}
+
+.user-info {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #01579b; /* Azul más oscuro para mejor legibilidad */
+}
+
+.logout-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #4a90e2, #0077c2); /* Degradado de azul */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid #01579b; /* Borde azul más oscuro */
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #3b82d1, #006bb0); /* Degradado más oscuro al pasar el ratón */
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+table, th, td {
+    border: 1px solid #b3e5fc; /* Azul claro */
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border-left: 1px solid #90caf9; /* Borde izquierdo azul claro */
+}
+
+th {
+    background: linear-gradient(135deg, #4a90e2, #0077c2); /* Degradado metálico */
+    color: white;
+    border-top: 3px solid #01579b; /* Borde superior más grueso */
+    border-bottom: 3px solid #01579b; /* Borde inferior más grueso */
+    position: relative;
+}
+
+th:after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, #0077c2, #4a90e2); /* Degradado de barra inferior */
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    border-radius: 0 0 4px 4px;
+}
+
+th button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+th button:hover {
+    text-decoration: underline;
+}
+
+td {
+    background-color: #e3f2fd; /* Azul claro para celdas */
+    border-bottom: 2px solid #90caf9; /* Borde inferior más oscuro */
+    white-space: nowrap; /* Evitar quiebres de línea */
+    overflow: hidden; /* Ocultar el texto que no cabe */
+    text-overflow: ellipsis; /* Añadir puntos suspensivos si el texto es muy largo */
+}
+
+td:first-child {
+    border-left: none; /* Sin borde izquierdo en la primera columna */
+}
+
+td:last-child {
+    border-right: none; /* Sin borde derecho en la última columna */
+}
+
+.module {
+    display: none;
+}
+
+/* Estilos del overlay y el modal cuando están visibles */
+.modal-overlay {
+    display: none; /* Mantener oculto el overlay */
+    position: fixed; /* Fijo en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 137, 209, 0.5); /* Azul translúcido */
+    z-index: 999; /* Asegura que el overlay esté sobre todo el contenido */
+}
+
+.modal-overlay.show {
+    display: block; /* Mostrar el overlay */
+}
+
+.modal-content {
+    background-color: #ffffff; /* Fondo blanco para el modal */
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Asegura que el modal esté sobre el overlay */
+    display: none; /* Mantener oculto el modal */
+    border: 1px solid #0288d1; /* Borde azul más oscuro */
+}
+
+.modal-content.show {
+    display: block; /* Mostrar el modal */
+}
+
+/* Estilos para el recuadro de búsqueda */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-container input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #90caf9; /* Borde azul claro */
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    width: 300px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+.search-container input[type="text"]:focus {
+    border-color: #0288d1; /* Borde azul más oscuro al enfocar */
+}
+
+.search-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #4a90e2, #0077c2); /* Degradado de azul */
+    color: white;
+    border: 2px solid #90caf9; /* Borde azul claro */
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+.search-container button:hover {
+    background: linear-gradient(135deg, #3b82d1, #006bb0); /* Degradado más oscuro al pasar el ratón */
+    border-color: #0288d1; /* Borde más oscuro al pasar el ratón */
+}
+
+.user-info .info-box {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #4a90e2, #0077c2); /* Degradado de azul */
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #01579b; /* Borde azul más oscuro */
+}
+
+.user-info .info-box:hover {
+    background: linear-gradient(135deg, #3b82d1, #006bb0); /* Degradado más oscuro al pasar el ratón */
+}
+
+/* ===== Estilos para los botones "Editar", "Exportar" y "Exportar Todos" ===== */
+
+/* Botón "Editar" en cada fila */
+.edit-btn {
+    margin-right: 5px;
+    padding: 5px 10px;
+    background-color: #ffc107; /* Color amarillo */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background-color: #e0a800;
+}
+
+/* Botón "Exportar" en cada fila */
+.export-btn {
+    margin-left: 5px;
+    padding: 5px 10px;
+    background-color: #28a745; /* Color verde */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
+
+/* Contenedor y botón "Exportar Todos" */
+.export-all-container {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.export-all-btn {
+    padding: 10px 20px;
+    background-color: #007bff; /* Color azul */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.export-all-btn:hover {
+    background-color: #0056b3;
+}
+
+/* ======== Fijar las primeras tres columnas en la tabla ======== */
+
+/* Fija la primera columna (Código Trabajador) */
+th:nth-child(1), td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    background-color: rgb(252, 245, 164);
+    z-index: 2; /* Asegura que esté sobre las demás columnas */
+}
+
+/* Fija la última columna (Acciones) para que siempre sea visible */
+.attendance-table th:last-child, 
+.attendance-table td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: rgb(252, 245, 164); /* Fondo amarillo para la columna de acciones */
+    z-index: 2; /* Asegura que la columna de acciones esté visible sobre las demás */
+}
+
+/* Estilos específicos para la tabla de asistencias */
+.attendance-table th:nth-child(4),
+.attendance-table th:nth-child(5),
+.attendance-table th:nth-child(6),
+.attendance-table th:nth-child(7),
+.attendance-table th:nth-child(8),
+.attendance-table th:nth-child(9),
+.attendance-table th:nth-child(10) {
+    width: 30px; /* Ancho reducido solo para los días */
+    text-align: center;
+}
+
+.attendance-table td:nth-child(4),
+.attendance-table td:nth-child(5),
+.attendance-table td:nth-child(6),
+.attendance-table td:nth-child(7),
+.attendance-table td:nth-child(8),
+.attendance-table td:nth-child(9),
+.attendance-table td:nth-child(10) {
+    width: 30px; /* Ancho reducido solo para los días */
+    text-align: center;
+    padding: 5px;
+}
+
+/* Mantener el tamaño de fuente heredado */
+.attendance-table th,
+.attendance-table td {
+    font-size: inherit;
+    white-space: nowrap; /* Evitar que el contenido se extienda */
+}
+
+/* Reducir el tamaño de los inputs en la tabla de asistencias */
+.attendance-table input[type="text"] {
+    width: 50px; /* Ajusta este valor según el ancho que desees */
+    text-align: center; /* Centrar el contenido */
+    padding: 2px; /* Reducir el padding para que no se vea tan grande */
+    box-sizing: border-box; /* Asegurar que el ancho incluya el padding y el borde */
+}
+
+/* Ajustar el ancho de los campos numéricos */
+.attendance-table input[type="number"][name="COMPENSACION"],
+.attendance-table input[type="number"][name="COMISION"],
+.attendance-table input[type="number"][name="BONO_PRODUCTIVIDAD"],
+.attendance-table input[type="number"][name="APOYO_TRANSPORTE"],
+.attendance-table input[type="number"][name="DESCUENTO_PRESTAMO_INVENTARIO"] {
+    width: 80px; /* Reducir el ancho para campos numéricos */
+    text-align: center; /* Centrar el texto dentro de los campos */
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* Ajustar el ancho del campo de "Notas" */
+.attendance-table input[type="text"][name="NOTAS"] {
+    width: 200px; /* Ampliar el ancho del campo de notas */
+    text-align: left; /* Alinear el texto a la izquierda */
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* Fijar la última columna (Acciones) para que siempre sea visible */
+.attendance-table th:last-child, 
+.attendance-table td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: rgb(252, 245, 164); /* Fondo amarillo para la columna de acciones */
+    z-index: 2; /* Asegura que la columna de acciones esté visible sobre las demás */
+}
+
+/* Fijar el encabezado de la columna de acciones para que también sea visible */
+.attendance-table thead th:last-child {
+    position: sticky;
+    right: 0;
+    background-color: rgb(252, 245, 164); /* Fondo amarillo para el encabezado */
+    z-index: 3; /* Asegura que el encabezado esté visible sobre las demás celdas */
+}
+
+/* Asegurarse de que la tabla y su contenedor permitan scroll horizontal */
+.table-container {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+#personal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#personal-table th,
+#personal-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+#personal-table th {
+    background-color: #f4f4f4;
+}
+
+/* Fijar la columna de acciones */
+#personal-table th:last-child,
+#personal-table td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: #fff; /* Color de fondo fijo para la columna */
+    z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
+}
+
+/* Asegurar que el encabezado de la columna de acciones esté fijo */
+#personal-table th:last-child {
+    z-index: 3; /* Asegurarse de que el encabezado esté sobre el resto de la tabla */
+}
+
+/* Asegurarse de que la tabla y su contenedor permitan scroll horizontal */
+.table-container {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+#vacation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Subrayar los encabezados de la tabla de vacaciones cuando se pasa el cursor */
+#vacation-table th:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#vacation-table th,
+#vacation-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+#vacation-table th {
+    background-color: #f4f4f4;
+}
+
+/* Fijar la columna de acciones */
+#vacation-table th:last-child,
+#vacation-table td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: #fff; /* Color de fondo fijo para la columna */
+    z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
+}
+
+/* Asegurar que el encabezado de la columna de acciones esté fijo */
+#vacation-table th:last-child {
+    z-index: 3; /* Asegurarse de que el encabezado esté sobre el resto de la tabla */
+}
+
+.logo {
+    width: 130px; /* Tamaño más pequeño */
+    height: auto; /* Mantener la proporción del logo */
+    vertical-align: middle; /* Alinea verticalmente el logo con el texto */
+    margin-right: 5px; /* Espacio entre el logo y el texto */
+}
+
+.icono-nav {
+    width: 30px; /* Puedes ajustar el tamaño del ícono */
+    height: auto; /* Mantiene la proporción del ícono */
+    margin-right: 10px; /* Espacio entre el ícono y el texto */
+    vertical-align: middle; /* Alinear el ícono con el texto del enlace */
+}
+
+.version-info {
+    position: absolute;
+    top: 10px; /* Ajusta la distancia desde el borde superior */
+    right: 20px; /* Ajusta la distancia desde el borde derecho */
+    font-size: 14px; /* Tamaño del texto */
+    color: #0277bd; /* Color azul oscuro */
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo semitransparente */
+    padding: 5px 10px; /* Espacio interno */
+    border-radius: 5px; /* Bordes redondeados */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Sombra para resaltar */
+}
+
+/* Estilo para subrayar el encabezado cuando se pasa el cursor */
+#attendance-table th:hover {
+    text-decoration: underline;
+    cursor: pointer; /* Muestra el cursor de mano al pasar sobre el encabezado */
+}

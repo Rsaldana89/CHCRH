@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Asistencias</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="logochc.png" alt="Logo" class="logo">
+            Panel Personal CHC
+            <span class="version-info">Versión 1.9 Alpha</span>
+        </h1>
+        <div class="toolbar">
+            <a href="asistencias.html">
+                <img src="asistencias.png" alt="Asistencias" class="icono-nav">
+                Admon. Asistencias
+            </a>
+            <a href="dashboard.html">
+                <img src="vacaciones.png" alt="Vacaciones" class="icono-nav">
+                Admon. Vacaciones
+            </a>
+            <a href="admon.html">
+                <img src="personal.png" alt="Personal" class="icono-nav">
+                Admon. Personal
+            </a>
+        </div>
+
+        <div class="user-info">
+            <p class="info-box">Usuario: <span id="username"></span></p>
+            <p class="info-box">Nombre: <span id="full-name"></span></p>
+            <p class="info-box">Rol: <span id="user-role"></span></p>
+            <p class="info-box">Fecha: <span id="current-date"></span></p>
+            <p class="info-box">Semana actual: <span id="current-week"></span></p>
+        </div>
+
+        <!-- Módulo de Asistencias -->
+        <div id="attendances-module">
+            <h2>Asistencias e Incidencias</h2>
+            <div class="selectors">
+                <label for="week-selector">Semana:</label>
+                <select id="week-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
+
+                <label for="year-selector">Año:</label>
+                <select id="year-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
+
+                <input type="text" id="week-range" readonly style="margin-left: 20px; padding: 5px; border: 1px solid #ccc;">
+                <button id="calculate-btn" onclick="updateAttendanceTable()">Calcular</button>
+            </div>
+
+            <div class="table-container">
+                <table id="attendance-table" class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTableBy('ID')">ID</th>
+                            <th onclick="sortTableBy('Nombre')">Nombre</th>
+                            <th onclick="sortTableBy('Departamento')">Departamento</th>
+                            <th>LU</th>
+                            <th>MA</th>
+                            <th>MI</th>
+                            <th>JU</th>
+                            <th>VI</th>
+                            <th>SA</th>
+                            <th>DO</th>
+                            <th>Total Extra</th>
+                            <th>DT</th>
+                            <th>DFT</th>
+                            <th>Falta</th>
+                            <th>INC</th>
+                            <th>VAC</th>
+                            <th>Prima Dominical</th>
+                            <th>Compensación</th>
+                            <th>Comisión</th>
+                            <th>Bono Productividad</th>
+                            <th>Apoyo Transporte</th>
+                            <th>Descuento Préstamo Inventario</th>
+                            <th>Notas</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Las filas se generarán dinámicamente con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="reportes-asistencias" style="margin-top: 30px;">
+                <h3>
+                    <img src="excel.png" alt="Icono Excel" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 10px;">
+                    Reportes y Exportación a XLSX
+                </h3>
+                <button onclick="exportarAsistenciasExcel()">Exportar Tabla Completa</button>
+                <button onclick="exportarAsistenciasEYE()">Exportar Asistencias EYE</button>
+                <button onclick="exportarAsistenciasCHC()">Exportar Asistencias CHC</button>
+                <button onclick="exportarAsistenciasCompaq()">Exportar Incidencias Compaq</button>
+                <button onclick="exportarAsistenciasCompaqCHC()">Exportar Incidencias Compaq CHC</button>
+                <button onclick="exportarAsistenciasCompaqEYE()">Exportar Incidencias Compaq EYE</button>
+            </div>
+
+            <div style="height: 50px;"></div>
+               
+            <a id="logout-btn" class="logout-btn">Cerrar Sesión</a>
+            
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('logout-btn').style.display = 'inline'; 
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('No estás autenticado. Por favor, inicia sesión.');
+        window.location.href = '/login.html';
+    } else {
+        fetch('/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').textContent = data.username; 
+            document.getElementById('full-name').textContent = data.full_name;
+            document.getElementById('user-role').textContent = data.role;
+
+            // Mostrar la fecha actual en el campo de fecha
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString(); // Esto usa el formato local
+            document.getElementById('current-date').textContent = formattedDate;
+
+            document.getElementById('current-week').textContent = getCurrentWeek();
+
+            // Cargar privilegios y luego cargar las asistencias con el filtro de departamentos
+            fetch('/privilegios.json')
+                .then(response => response.json())
+                .then(privileges => {
+                    const userPrivileges = privileges.roles[data.role][data.username];
+                    if (userPrivileges && userPrivileges.departments) {
+                        // Llamar a las funciones iniciales con el filtro de departamentos
+                        populateWeekAndYearSelectors();
+                        updateWeekRangeDisplay();
+                        loadCurrentWeekAttendance(userPrivileges.departments);
+                    } else {
+                        console.error('No se encontraron privilegios para este usuario.');
+                    }
+                })
+                .catch(error => console.error('Error al cargar los privilegios:', error));
+        })
+        .catch(error => console.error('Error al obtener la información del usuario:', error));
+    }
+});
+
+// Control de la dirección de ordenamiento para cada campo
+let sortDirection = { Nombre: true, Departamento: true, ID: true };
+
+function sortTableBy(field) {
+    const tableBody = document.querySelector('#attendance-table tbody');
+    const rowsArray = Array.from(tableBody.querySelectorAll('tr'));
+
+    // Determinar la columna para ordenar según el campo especificado
+    rowsArray.sort((a, b) => {
+        let aText, bText;
+        
+        // Comparar valores de acuerdo al campo
+        if (field === 'ID') {
+            aText = parseInt(a.querySelector('td:first-child').innerText, 10);
+            bText = parseInt(b.querySelector('td:first-child').innerText, 10);
+        } else if (field === 'Nombre') {
+            aText = a.querySelector('td:nth-child(2)').innerText.toLowerCase();
+            bText = b.querySelector('td:nth-child(2)').innerText.toLowerCase();
+        } else if (field === 'Departamento') {
+            aText = a.querySelector('td:nth-child(3)').innerText.toLowerCase();
+            bText = b.querySelector('td:nth-child(3)').innerText.toLowerCase();
+        }
+
+        if (aText < bText) return sortDirection[field] ? -1 : 1;
+        if (aText > bText) return sortDirection[field] ? 1 : -1;
+        return 0;
+    });
+
+    // Alternar la dirección de ordenación para el próximo clic
+    sortDirection[field] = !sortDirection[field];
+
+    // Volver a agregar las filas ordenadas en el DOM
+    tableBody.innerHTML = '';
+    rowsArray.forEach(row => tableBody.appendChild(row));
+}
+
+// Configurar eventos de clic para ordenar al hacer clic en ID, Nombre y Departamento
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelector('#attendance-table thead th:nth-child(1)').addEventListener('click', () => sortTableBy('ID'));
+    document.querySelector('#attendance-table thead th:nth-child(2)').addEventListener('click', () => sortTableBy('Nombre'));
+    document.querySelector('#attendance-table thead th:nth-child(3)').addEventListener('click', () => sortTableBy('Departamento'));
+});
+
+
+function populateWeekAndYearSelectors() {
+    const weekSelector = document.getElementById('week-selector');
+    const yearSelector = document.getElementById('year-selector');
+    
+    const currentYear = new Date().getFullYear();
+    for (let i = 1; i <= 52; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Semana ${i}`;
+        weekSelector.appendChild(option);
+    }
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        yearSelector.appendChild(option);
+    }
+
+    weekSelector.value = getCurrentWeek();
+    yearSelector.value = currentYear;
+}
+
+function updateWeekRangeDisplay() {
+    const week = parseInt(document.getElementById('week-selector').value, 10);
+    const year = parseInt(document.getElementById('year-selector').value, 10);
+
+    const firstDayOfYear = new Date(year, 0, 1);
+    const daysOffset = (firstDayOfYear.getDay() === 0 ? 6 : firstDayOfYear.getDay() - 1);
+    const startOfWeek = new Date(firstDayOfYear.getTime() + ((week - 1) * 7 - daysOffset) * 24 * 60 * 60 * 1000);
+    const endOfWeek = new Date(startOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const options = { day: '2-digit', month: 'short' };
+    const weekRange = `${startOfWeek.toLocaleDateString('es-ES', options)} - ${endOfWeek.toLocaleDateString('es-ES', options)}`;
+
+    document.getElementById('week-range').value = `Del ${weekRange}`;
+}
+
+function getCurrentWeek() {
+    const currentDate = new Date();
+    const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
+    const days = Math.floor((currentDate - startOfYear) / (24 * 60 * 60 * 1000));
+    return Math.ceil(days / 7);
+}
+
+function loadCurrentWeekAttendance(departments) {
+    const currentWeek = getCurrentWeek();
+    const currentYear = new Date().getFullYear();
+    loadAttendanceData(currentWeek, currentYear, departments);
+}
+
+
+function updateAttendanceTable() {
+    const week = document.getElementById('week-selector').value;
+    const year = document.getElementById('year-selector').value;
+
+    // Leer los privilegios del archivo JSON
+    fetch('/privilegios.json')
+        .then(response => response.json())
+        .then(privileges => {
+            const username = document.getElementById('username').textContent;
+            const role = document.getElementById('user-role').textContent;
+            const userPrivileges = privileges.roles[role][username];
+
+            if (userPrivileges && userPrivileges.departments) {
+                // Cargar datos filtrados por departamentos
+                loadAttendanceData(week, year, userPrivileges.departments);
+            } else {
+                console.error('No se encontraron privilegios para este usuario.');
+            }
+        })
+        .catch(error => console.error('Error al cargar los privilegios:', error));
+}
+
+
+function loadAttendanceData(week, year, departments) {
+    fetch(`/admin/attendances?week=${week}&year=${year}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Filtrar asistencias por los departamentos permitidos
+        const filteredData = data.filter(attendance => 
+            departments.includes('Todos') || departments.includes(attendance.Departamento)
+        );
+        renderAttendanceTable(filteredData);
+    })
+    .catch(error => console.error('Error al cargar las asistencias:', error));
+}
+
+
+function renderAttendanceTable(data) {
+    const tbody = document.querySelector('#attendance-table tbody');
+    tbody.innerHTML = '';
+
+    const role = document.getElementById('user-role').textContent.trim();
+
+    // Filtrar empleados cuyo departamento no sea "Baja"
+    const filteredData = data.filter(attendance => attendance.Departamento !== 'Baja');
+
+    filteredData.forEach(attendance => {
+        const employeeNumber = attendance['Codigo trabajador'].toString().padStart(5, '0');
+
+        const calculateTotalExtra = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let total = 0;
+            days.forEach(day => {
+                if (day && day.includes('TE')) {
+                    const value = parseFloat(day.replace('TE', '')) || 0;
+                    total += value;
+                }
+            });
+            return `${total}TE`;
+        };
+
+        const calculateTotalDT = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let totalDT = 0;
+            days.forEach(day => {
+                if (day === 'DT') {
+                    totalDT += 1;
+                }
+            });
+            return `${totalDT}DT`;
+        };
+
+        const calculateTotalDFT = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let totalDFT = 0;
+            days.forEach(day => {
+                if (day === 'DFT') {
+                    totalDFT += 1;
+                }
+            });
+            return `${totalDFT}DFT`;
+        };
+
+        const calculateTotalF = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let totalF = 0;
+            days.forEach(day => {
+                if (day === 'F') {
+                    totalF += 1;
+                }
+            });
+            return `${totalF}F`;
+        };
+
+        const calculateTotalINC = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let totalINC = 0;
+            days.forEach(day => {
+                if (day === 'INC') {
+                    totalINC += 1;
+                }
+            });
+            return `${totalINC}INC`;
+        };
+
+        const calculateTotalVAC = () => {
+            const days = [attendance.LUNES, attendance.MARTES, attendance.MIERCOLES, attendance.JUEVES, attendance.VIERNES, attendance.SABADO, attendance.DOMINGO];
+            let totalVAC = 0;
+            days.forEach(day => {
+                if (day === 'VAC') {
+                    totalVAC += 1;
+                }
+            });
+            return `${totalVAC}VAC`;
+        };
+
+        const totalExtra = calculateTotalExtra();
+        const totalDT = calculateTotalDT();
+        const totalDFT = calculateTotalDFT();
+        const totalF = calculateTotalF();
+        const totalINC = calculateTotalINC();
+        const totalVAC = calculateTotalVAC();
+
+        let row = `
+            <tr>
+                <td>${employeeNumber}</td>
+                <td>${attendance.Nombre}</td>
+                <td>${attendance.Departamento}</td>
+                ${renderComboBox('LUNES', attendance.LUNES || '1')}
+                ${renderComboBox('MARTES', attendance.MARTES || '1')}
+                ${renderComboBox('MIERCOLES', attendance.MIERCOLES || '1')}
+                ${renderComboBox('JUEVES', attendance.JUEVES || '1')}
+                ${renderComboBox('VIERNES', attendance.VIERNES || '1')}
+                ${renderComboBox('SABADO', attendance.SABADO || '1')}
+                ${renderComboBox('DOMINGO', attendance.DOMINGO || '1')}
+                <td>${totalExtra}</td>
+                <td>${totalDT}</td>
+                <td>${totalDFT}</td>
+                <td>${totalF}</td>
+                <td>${totalINC}</td>
+                <td>${totalVAC}</td>
+                ${renderComboBox('Prima Dominical', attendance['Prima dominical'] || '0', [0, 1])} 
+                <td><input type="number" value="${attendance.Compensacion || '0'}" disabled ondblclick="enableEdit(this)" name="COMPENSACION"></td>
+                <td><input type="number" value="${attendance.Comision || '0'}" disabled ondblclick="enableEdit(this)" name="COMISION"></td>
+                <td><input type="number" value="${attendance['Bono productividad'] || '0'}" disabled ondblclick="enableEdit(this)" name="BONO_PRODUCTIVIDAD"></td>
+                <td><input type="number" value="${attendance['Apoyo transporte'] || '0'}" disabled ondblclick="enableEdit(this)" name="APOYO_TRANSPORTE"></td>
+                <td><input type="number" value="${attendance['Descuento prestamo inventario'] || '0'}" disabled ondblclick="enableEdit(this)" name="DESCUENTO_PRESTAMO_INVENTARIO"></td>
+                <td><input type="text" value="${attendance.Notas || ''}" maxlength="200" disabled ondblclick="enableEdit(this)" name="NOTAS"></td>
+                <td>`;
+
+        // Mostrar el botón solo si el rol es "manager" o "admin"
+        if (role === 'admin' || role === 'manager') {
+            row += `<button onclick="toggleEdit(this)">Editar</button>`;
+        }
+
+        row += `</td></tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
+}
+
+// Función para generar un combobox con el valor predeterminado de la base de datos
+function renderComboBox(fieldName, value, options = [ "1", "F", "0.5TE", "1TE", "2TE", "3TE", "DT", "DFT", "VAC", "INC"]) {
+    const optionsHTML = options.map(option => 
+        `<option value="${option}" ${value == option ? 'selected' : ''}>${option}</option>`
+    ).join('');
+
+    return `
+        <td>
+            <select name="${fieldName}" disabled ondblclick="enableEdit(this)">
+                ${optionsHTML}
+            </select>
+        </td>
+    `;
+}
+
+// Función para habilitar la edición en un campo al hacer doble clic
+function enableEdit(inputElement) {
+    inputElement.disabled = false; 
+    inputElement.focus(); 
+    inputElement.addEventListener('blur', function() {
+        inputElement.disabled = true;
+    });
+}
+
+// Función para alternar entre editar y guardar
+function toggleEdit(button) {
+    const row = button.closest('tr');
+    const inputs = row.querySelectorAll('input, select');
+    const isEditing = button.textContent === 'Guardar';
+
+    // Obtén la semana y el año seleccionados en los selectores de semana y año
+    const selectedWeek = parseInt(document.getElementById('week-selector').value);
+    const selectedYear = parseInt(document.getElementById('year-selector').value);
+
+    // Obtén la semana y el año actual
+    const now = new Date();
+    const currentWeek = getCurrentWeek();
+    const currentYear = now.getFullYear();
+
+    // Verifica el rol del usuario
+    const userRole = document.getElementById('user-role').textContent.trim();
+
+    // Calcula el inicio del lunes de la semana actual
+    const startOfCurrentWeek = getDateOfISOWeek(currentWeek, currentYear);
+    const endOf72Hours = new Date(startOfCurrentWeek.getTime() + (72 * 60 * 60 * 1000)); // 48 horas después del inicio del lunes de la semana actual
+
+    // Permitir edición si es administrador o si estamos dentro de las 48 horas de la semana actual para editar la semana anterior
+    if (
+        userRole !== 'admin' && // Admin siempre tiene acceso
+        !isEditing && // Solo verificar antes de habilitar la edición
+        !(
+            (selectedWeek === currentWeek && selectedYear === currentYear) || // Permitir edición en la semana actual
+            (selectedWeek === currentWeek - 1 && selectedYear === currentYear && now <= endOf72Hours) // Permitir edición en la semana anterior durante las primeras 48 horas de la semana actual
+        )
+    ) {
+        alert("La edición solo está permitida en la semana actual o en la semana anterior durante las primeras 72 horas de la semana actual.");
+        return; // Sale de la función sin habilitar edición si no cumple los requisitos
+    }
+
+    // Si estamos en modo "Guardar", procesa y envía los datos
+    if (isEditing) {
+        console.log('Guardando cambios...');
+
+        const employeeNumber = row.cells[0].textContent.trim();
+        const LUNES = row.querySelector('select[name="LUNES"]').value;
+        const MARTES = row.querySelector('select[name="MARTES"]').value;
+        const MIERCOLES = row.querySelector('select[name="MIERCOLES"]').value;
+        const JUEVES = row.querySelector('select[name="JUEVES"]').value;
+        const VIERNES = row.querySelector('select[name="VIERNES"]').value;
+        const SABADO = row.querySelector('select[name="SABADO"]').value;
+        const DOMINGO = row.querySelector('select[name="DOMINGO"]').value;
+        const COMPENSACION = row.querySelector('input[name="COMPENSACION"]').value || '0';
+        const COMISION = row.querySelector('input[name="COMISION"]').value || '0';
+        const BONO_PRODUCTIVIDAD = row.querySelector('input[name="BONO_PRODUCTIVIDAD"]').value || '0';
+        const APOYO_TRANSPORTE = row.querySelector('input[name="APOYO_TRANSPORTE"]').value || '0';
+        const PRIMA_DOMINICAL = row.querySelector('select[name="Prima Dominical"]').value || '0';
+        const DESCUENTO_PRESTAMO_INVENTARIO = row.querySelector('input[name="DESCUENTO_PRESTAMO_INVENTARIO"]').value || '0';
+        const NOTAS = row.querySelector('input[name="NOTAS"]').value || '';
+
+        const updatedData = {
+            LUNES,
+            MARTES,
+            MIERCOLES,
+            JUEVES,
+            VIERNES,
+            SABADO,
+            DOMINGO,
+            COMPENSACION,
+            COMISION,
+            BONO_PRODUCTIVIDAD,
+            APOYO_TRANSPORTE,
+            DESCUENTO_PRESTAMO_INVENTARIO,
+            PRIMA_DOMINICAL,
+            NOTAS
+        };
+
+        fetch(`/admin/attendances/${employeeNumber}/${selectedWeek}/${selectedYear}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(updatedData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos de la respuesta:', data);
+
+            if (data.success) {
+                alert('Cambios guardados correctamente.');
+                updateAttendanceTable();
+            } else {
+                alert('Hubo un error al guardar los cambios.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al actualizar los datos:', error);
+            alert('Hubo un error al guardar los cambios.');
+        });
+
+        inputs.forEach(input => input.disabled = true);
+        button.textContent = 'Editar';
+    } else {
+        inputs.forEach(input => input.disabled = false);
+        button.textContent = 'Guardar';
+    }
+}
+
+// Funciones de ayuda para obtener la semana actual y la fecha de inicio de una semana ISO
+function getCurrentWeek() {
+    const today = new Date();
+    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+    const daysSinceStartOfYear = Math.floor((today - firstDayOfYear) / (24 * 60 * 60 * 1000));
+    return Math.ceil((daysSinceStartOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+function getDateOfISOWeek(week, year) {
+    const simple = new Date(year, 0, 1 + (week - 1) * 7);
+    const dayOfWeek = simple.getDay();
+    const isoWeekStart = simple;
+    if (dayOfWeek <= 4) isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+    else isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+    return isoWeekStart;
+}
+
+
+
+
+function exportarAsistenciasExcel() {
+    const table = document.getElementById('attendance-table');
+
+    // Crear un array vacío para almacenar los datos sin la columna de acciones
+    let data = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    let headers = [];
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Recorrer las filas de la tabla, excluyendo la columna de "Acciones"
+    for (let i = 1; i < table.rows.length; i++) {
+        let rowData = [];
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la última columna
+            let cell = table.rows[i].cells[j];
+
+            // Si la celda contiene un <select>, obtener el valor seleccionado
+            if (cell.querySelector('select')) {
+                rowData.push(cell.querySelector('select').value); // Extrae solo el valor seleccionado
+            } else if (cell.querySelector('input')) {
+                rowData.push(cell.querySelector('input').value); // Si es un input, extrae el valor del input
+            } else {
+                rowData.push(cell.innerText); // Para celdas normales, extrae el texto
+            }
+        }
+        data.push(rowData);
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencias');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'asistencias_completas.xlsx');
+}
+
+function exportarAsistenciasEYE() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamento "EYE" y agregar los datos a exportar
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
+        if (departamento.startsWith('EYE')) {
+            let rowData = [];
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+                let cell = table.rows[i].cells[j];
+
+                // Si la celda contiene un <select>, obtener el valor seleccionado
+                if (cell.querySelector('select')) {
+                    rowData.push(cell.querySelector('select').value);
+                } else if (cell.querySelector('input')) {
+                    rowData.push(cell.querySelector('input').value); // Para celdas con input
+                } else {
+                    rowData.push(cell.innerText); // Para celdas sin input ni select
+                }
+            }
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencias EYE');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'asistencias_EYE.xlsx');
+}
+
+function exportarAsistenciasCHC() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamentos que NO empiecen con "EYE" (Asistencias CHC)
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
+        if (!departamento.startsWith('EYE')) {
+            let rowData = [];
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+                let cell = table.rows[i].cells[j];
+
+                // Si la celda contiene un <select>, obtener el valor seleccionado
+                if (cell.querySelector('select')) {
+                    rowData.push(cell.querySelector('select').value);
+                } else if (cell.querySelector('input')) {
+                    rowData.push(cell.querySelector('input').value); // Para celdas con input
+                } else {
+                    rowData.push(cell.innerText); // Para celdas sin input ni select
+                }
+            }
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencias CHC');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'asistencias_CHC.xlsx');
+}
+
+function exportarAsistenciasCompaq() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Recorrer las filas de la tabla (exceptuando los encabezados)
+    for (let i = 1; i < table.rows.length; i++) {
+        let rowData = [];
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+            let cell = table.rows[i].cells[j];
+            let value;
+
+            // Si la celda contiene un <select>, obtener el valor seleccionado y traducir
+            if (cell.querySelector('select')) {
+                value = cell.querySelector('select').value;
+            } else if (cell.querySelector('input')) {
+                value = cell.querySelector('input').value;
+            } else {
+                value = cell.innerText;
+            }
+
+            // Realizar la traducción de cualquier valor en la tabla (excepto encabezados)
+            value = translateValue(value);
+
+            rowData.push(value);
+        }
+        data.push(rowData);
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencias Compaq');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'asistencias_compaq.xlsx');
+}
+
+// Función para traducir los valores de "TE" a "HE2" y "F" a "FINJ"
+function translateValue(value) {
+    let result = value;
+
+    // Traducción dinámica de "F" a "FINJ", considerando "F" o "nF"
+    result = result.replace(/\b(\d*(?:\.\d+)?)F\b/g, function(match, p1) {
+        let number = p1 || '1'; // Si no hay número, asumimos '1'
+        return number + 'FINJ';
+    });
+
+    // Traducción dinámica de "TE" a "HE2", considerando "TE" o "nTE"
+    result = result.replace(/\b(\d*(?:\.\d+)?)TE\b/g, function(match, p1) {
+        let number = p1 || '1'; // Si no hay número, asumimos '1'
+        return number + 'HE2';
+    });
+
+    return result;
+}
+
+function exportarAsistenciasCompaqEYE() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamento que comience con "EYE"
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
+        if (departamento.startsWith('EYE')) {
+            let rowData = [];
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+                let cell = table.rows[i].cells[j];
+                let value;
+
+                // Si la celda contiene un <select>, obtener el valor seleccionado y traducir
+                if (cell.querySelector('select')) {
+                    value = cell.querySelector('select').value;
+                } else if (cell.querySelector('input')) {
+                    value = cell.querySelector('input').value;
+                } else {
+                    value = cell.innerText;
+                }
+
+                value = translateValue(value);
+                rowData.push(value);
+            }
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencias Compaq EYE');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'asistencias_compaq_EYE.xlsx');
+}
+
+function exportarAsistenciasCompaqCHC() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamentos que NO empiecen con "EYE" y agregar los datos a exportar
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
+        if (!departamento.startsWith('EYE')) {
+            let rowData = [];
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+                let cell = table.rows[i].cells[j];
+                let value;
+
+                // Si la celda contiene un <select>, obtener el valor seleccionado y traducir
+                if (cell.querySelector('select')) {
+                    value = cell.querySelector('select').value;
+                } else if (cell.querySelector('input')) {
+                    value = cell.querySelector('input').value;
+                } else {
+                    value = cell.innerText;
+                }
+
+                // Traducir el valor como en el reporte anterior
+                value = translateValue(value);
+
+                rowData.push(value);
+            }
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Incidencias Compaq CHC');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'incidencias_compaq_chc.xlsx');
+}
+
+// Función para traducir los valores de "TE" a "HE2" y "F" a "FINJ"
+function translateValue(value) {
+    let result = value;
+
+    // Traducción dinámica de "F" a "FINJ"
+    result = result.replace(/\b(\d*(?:\.\d+)?)F\b/g, function(match, p1) {
+        let number = p1 || '1'; // Si no hay número, asumimos '1'
+        return number + 'FINJ';
+    });
+
+    // Traducción dinámica de "TE" a "HE2"
+    result = result.replace(/\b(\d*(?:\.\d+)?)TE\b/g, function(match, p1) {
+        let number = p1 || '1'; // Si no hay número, asumimos '1'
+        return number + 'HE2';
+    });
+
+    return result;
+}
+
+
+
+
+document.getElementById('logout-btn').addEventListener('click', function () {
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+});
+
+
+    </script>
+</body>
+</html>

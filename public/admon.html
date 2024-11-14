@@ -1,0 +1,1093 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Sistema CHC</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <img src="logochc.png" alt="Logo" class="logo">
+            Panel Personal CHC
+            <span class="version-info">Versión 1.9 Alpha</span> <!-- Agregamos la versión aquí -->
+        </h1>
+        <!-- Barra de Herramientas -->
+        <div class="toolbar">
+            <a href="asistencias.html">
+                <img src="asistencias.png" alt="Asistencias" class="icono-nav">
+                Admon. Asistencias
+            </a>
+            <a href="dashboard.html">
+                <img src="vacaciones.png" alt="Vacaciones" class="icono-nav">
+                Admon. Vacaciones
+            </a>
+            <a href="admon.html">
+                <img src="personal.png" alt="Personal" class="icono-nav">
+                Admon. Personal
+            </a>
+        </div>
+
+        <div class="user-info">
+            <p class="info-box">Usuario: <span id="username"></span></p>
+            <p class="info-box">Nombre: <span id="full-name"></span></p>
+            <p class="info-box">Rol: <span id="user-role"></span></p>
+        </div>
+        
+        <!-- Módulo de Administración de Personal -->
+        <div id="personal-management-module" class="module" style="display: none;">
+            <h2>Administración de Personal</h2>
+
+            <!-- Recuadro de Búsqueda -->
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Buscar por nombre o número de empleado">
+                <button onclick="searchEmployee()">Buscar</button>
+
+                <!-- Combobox para seleccionar departamento -->
+                <select id="department-filter" onchange="searchEmployee()">
+                    <option value="">Todos los departamentos</option>
+                </select>
+            </div>
+            
+            <div class="table-container">
+                <table id="personal-table">
+                    <thead>
+                        <tr>
+                            <th><button onclick="sortPersonal('employee_number')">ID</button></th>
+                            <th><button onclick="sortPersonal('full_name')">Nombre Completo</button></th>
+                            <th><button onclick="sortPersonal('rfc')">RFC</button></th>
+                            <th><button onclick="sortPersonal('curp')">CURP</button></th>
+                            <th><button onclick="sortPersonal('nss')">NSS</button></th>
+                            <th><button onclick="sortPersonal('puesto')">Puesto</button></th>
+                            <th><button onclick="sortPersonal('department_name')">Departamento</button></th>
+                            <th>Fecha de Ingreso</th>
+                            <th>Fecha de Baja</th>
+                            <th>Fecha de Reingreso</th>
+                            <th>Antigüedad</th>
+                            <th>Fecha de Nacimiento</th> <!-- Nueva columna -->
+                            <th>Edad</th> <!-- Nueva columna -->
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Las filas se generarán dinámicamente con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="add-employee-btn" onclick="openAddEmployeeModal()">Agregar Nuevo Empleado</button>
+            <button onclick="exportToCSV()" style="margin-top: 20px;">Exportar a CSV</button>
+
+            <div id="reportes" style="margin-top: 30px;">
+                <h3>
+                    <img src="excel.png" alt="Icono Excel" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 10px;">
+                    Reportes y Exportación a XLSX
+                </h3>
+                <button onclick="exportToExcel()">Exportar Selección</button>
+                <button onclick="exportCHC()">Exportar CHC</button>
+                <button onclick="exportEYE()">Exportar EYE</button>
+                <button onclick="exportPrenomina()">Generar Prenómina</button>
+                <button onclick="exportBajas()">Generar Bajas</button>
+            </div>
+
+            <!-- Respaldo base de Datos -->
+<div id="respaldo" style="display: none; margin-top: 30px;">
+    <h3>
+        <img src="excel.png" alt="Icono Excel" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 10px;">
+        Respaldo base de Datos
+    </h3>
+    <button id="backup-db-btn" onclick="backupDatabase()">Respaldar Base de Datos</button>
+</div>
+
+
+            
+        </div>
+
+        <!-- Modal para agregar/editar empleado -->
+        <div class="modal-overlay" id="modal-overlay" onclick="closeEmployeeModal()"></div>
+        <div id="employee-modal" class="modal-content">
+            <h2 id="modal-title">Agregar Nuevo Empleado</h2>
+            <form id="employee-form">
+                <div class="form-group">
+                    <label for="employee_number">Número de Empleado:</label>
+                    <input type="text" id="employee_number" name="employee_number" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_name">Nombre Completo:</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="rfc">RFC:</label>
+                    <input type="text" id="rfc" name="rfc" maxlength="13">
+                </div>
+                
+
+                <div class="form-group">
+                    <label for="curp">CURP:</label>
+                    <input type="text" id="curp" name="curp" maxlength="18">
+                </div>
+
+                <div class="form-group">
+                    <label for="nss">NSS:</label>
+                    <input type="text" id="nss" name="nss" maxlength="11">
+                </div>
+
+                <div class="form-group">
+                    <label for="puesto">Puesto:</label>
+                    <input type="text" id="puesto" name="puesto">
+                </div>
+
+                <div class="form-group">
+                    <label for="department_name">Departamento:</label>
+                    <select id="department_name" name="department_name" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Fecha de Ingreso:</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="birth_date">Fecha de Nacimiento:</label>
+                    <input type="date" id="birth_date" name="birth_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha_baja">Fecha de Baja:</label>
+                    <input type="date" id="fecha_baja" name="fecha_baja">
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha_reingreso">Fecha de Reingreso:</label>
+                    <input type="date" id="fecha_reingreso" name="fecha_reingreso">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" id="save-employee-btn">Guardar</button>
+                    <button type="button" onclick="closeEmployeeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+
+
+        <a id="logout-btn" class="logout-btn">Cerrar Sesión</a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+
+    <script>
+        let personalData = []; // Variable global para almacenar los datos del personal
+        let currentSearchQuery = '';
+        let currentDepartmentFilter = '';
+        let currentSortCriteria = '';
+        let currentSortOrder = 'asc';
+        
+        let ALL_DEPARTMENTS = [];
+
+// Función para cargar los departamentos desde el archivo JSON
+function loadDepartments() {
+    fetch('departamentos.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar los departamentos');
+            }
+            return response.json();
+        })
+        .then(data => {
+            ALL_DEPARTMENTS = data.departments;
+            populateDepartmentSelect('department-filter'); // Para el filtro de departamentos en el módulo de personal
+            populateDepartmentSelect('department_name');   // Para el campo de selección en el formulario
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Función para llenar el selector con los departamentos cargados
+function populateDepartmentSelect(selectId) {
+    const selectElement = document.getElementById(selectId);
+    selectElement.innerHTML = ''; // Limpia las opciones existentes
+
+    // Agrega la opción "Todos los departamentos" al inicio
+    const allOption = document.createElement('option');
+    allOption.value = '';
+    allOption.textContent = 'Todos los departamentos';
+    selectElement.appendChild(allOption);
+
+    // Agregar las opciones de departamentos desde el JSON
+    ALL_DEPARTMENTS.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        selectElement.appendChild(option);
+    });
+}
+
+// Llamar a loadDepartments cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    loadDepartments(); // Cargar los departamentos desde el JSON
+
+    // Resto del código de inicialización
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('No estás autenticado. Por favor, inicia sesión.');
+        window.location.href = '/login.html';
+    } else {
+        // Carga de usuario y privilegios
+        fetch('/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').textContent = data.username;
+            document.getElementById('full-name').textContent = data.full_name;
+            document.getElementById('user-role').textContent = data.role;
+
+            if (data.username === 'managerchc') {
+                document.getElementById('respaldo').style.display = 'block';
+            } else {
+                document.getElementById('respaldo').style.display = 'none';
+            }
+
+            return fetch('/privilegios.json')
+                .then(response => response.json())
+                .then(privileges => {
+                    const userPrivileges = privileges.roles[data.role][data.username];
+                    if (userPrivileges && userPrivileges.departments) {
+                        showPersonalManagement(userPrivileges.departments);
+                    } else {
+                        console.error('No se encontraron privilegios para este usuario.');
+                    }
+                });
+        })
+        .catch(error => console.error('Error al obtener la información del usuario:', error));
+    }
+
+    // Permitir búsqueda con Enter
+    document.getElementById('search-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            searchEmployee();
+        }
+    });
+});
+
+
+// Función para calcular la antigüedad en años y meses
+function calcularAntiguedad(fechaIngreso, fechaReingreso) {
+    const fechaBase = fechaReingreso || fechaIngreso;
+    const fechaInicio = new Date(fechaBase);
+    const fechaActual = new Date();
+
+    let años = fechaActual.getFullYear() - fechaInicio.getFullYear();
+    let meses = fechaActual.getMonth() - fechaInicio.getMonth();
+
+    // Ajuste en caso de que el mes de inicio aún no haya pasado en el año actual
+    if (meses < 0) {
+        años--;
+        meses += 12;
+    }
+
+    return `${años} años y ${meses} meses`;
+}
+
+
+// Llenar dinámicamente los selectores con la lista de departamentos
+// Llamar a loadDepartments cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    loadDepartments(); // Cargar los departamentos desde el JSON
+
+    // Resto del código de inicialización
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('No estás autenticado. Por favor, inicia sesión.');
+        window.location.href = '/login.html';
+    } else {
+        // Carga de usuario y privilegios
+        fetch('/dashboard', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').textContent = data.username;
+            document.getElementById('full-name').textContent = data.full_name;
+            document.getElementById('user-role').textContent = data.role;
+
+            if (data.username === 'managerchc') {
+                document.getElementById('respaldo').style.display = 'block';
+            } else {
+                document.getElementById('respaldo').style.display = 'none';
+            }
+
+            return fetch('/privilegios.json')
+                .then(response => response.json())
+                .then(privileges => {
+                    const userPrivileges = privileges.roles[data.role][data.username];
+                    if (userPrivileges && userPrivileges.departments) {
+                        showPersonalManagement(userPrivileges.departments);
+                    } else {
+                        console.error('No se encontraron privilegios para este usuario.');
+                    }
+                });
+        })
+        .catch(error => console.error('Error al obtener la información del usuario:', error));
+    }
+
+    // Permitir búsqueda con Enter
+    document.getElementById('search-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            searchEmployee();
+        }
+    });
+
+    
+    // Llenar el combobox de filtro y el de creación con departamentos
+    populateDepartmentSelect('department-filter');
+    populateDepartmentSelect('department_name');
+
+    // Permitir búsqueda con Enter
+    document.getElementById('search-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            searchEmployee();
+        }
+    });
+});
+
+
+
+function showPersonalManagement(allowedDepartments) {
+    fetch('/admin/personal', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Verificar si el usuario tiene acceso a "Todos los departamentos"
+        if (allowedDepartments.includes("Todos")) {
+            personalData = data; // Mostrar todos los datos si tiene acceso a todos los departamentos
+        } else {
+            personalData = data.filter(emp => allowedDepartments.includes(emp.department_name));
+        }
+        
+        renderPersonalTable(personalData);
+        document.getElementById('personal-management-module').style.display = 'block';
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
+
+function searchEmployee() {
+    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+    const selectedDepartment = document.getElementById('department-filter').value;
+
+    const filteredData = personalData.filter(emp => {
+        const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || 
+                                   emp.employee_number.toString().includes(searchQuery);
+        const matchesDepartment = selectedDepartment === '' || emp.department_name === selectedDepartment;
+
+        return matchesSearchQuery && matchesDepartment;
+    });
+
+    renderPersonalTable(filteredData);
+}
+
+
+function calcularEdad(fechaNacimiento) {
+    const birthDate = new Date(fechaNacimiento);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return `${age} años`;
+}
+
+function renderPersonalTable(data = personalData) {
+    const tbody = document.querySelector('#personal-table tbody');
+    tbody.innerHTML = '';
+
+    const role = localStorage.getItem('role');
+
+    data.forEach(emp => {
+        const antiguedad = calcularAntiguedad(emp.start_date, emp.fecha_reingreso); // Cálculo de antigüedad
+        const edad = calcularEdad(emp.birth_date); // Cálculo de edad
+        const fechaNacimiento = emp.birth_date ? formatDate(emp.birth_date) : ''; // Formato de la fecha de nacimiento
+
+        let row = `
+            <tr>
+                <td>${emp.employee_number.toString().padStart(5, '0')}</td>
+                <td>${emp.full_name}</td>
+                <td>${emp.rfc || ''}</td>
+                <td>${emp.curp || ''}</td>
+                <td>${emp.nss || ''}</td>
+                <td>${emp.puesto || ''}</td>
+                <td>${emp.department_name}</td>
+                <td>${formatDate(emp.start_date)}</td>
+                <td>${emp.fecha_baja ? formatDate(emp.fecha_baja) : ''}</td>
+                <td>${emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : ''}</td>
+                <td>${antiguedad}</td>
+                <td>${fechaNacimiento}</td> <!-- Mostrar fecha de nacimiento -->
+                <td>${edad}</td> <!-- Mostrar edad -->
+                <td>`;
+
+        if (role === 'admin') {
+            row += `
+                <button class="edit-btn" onclick="editEmployee(${emp.employee_number})">Editar</button>
+                <button class="baja-btn" onclick="confirmBaja(${emp.employee_number})">Baja</button>`;
+        }
+
+        row += `</td></tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
+}
+
+
+        function sortPersonal(criteria) {
+            personalData.sort((a, b) => {
+                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+
+                if (a[criteria] < b[criteria]) return -1;
+                if (a[criteria] > b[criteria]) return 1;
+                return 0;
+            });
+
+            renderPersonalTable();
+        }
+
+        function formatDate(dateString) {
+             const date = new Date(dateString);
+             const day = String(date.getDate()).padStart(2, '0');
+             const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JavaScript van de 0 a 11
+             const year = date.getFullYear();
+             return `${day}/${month}/${year}`;
+
+
+        }
+
+        document.getElementById('employee-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const employeeData = {
+                employee_number: document.getElementById('employee_number').value,
+                full_name: document.getElementById('full_name').value,
+                rfc: document.getElementById('rfc').value || null,
+                curp: document.getElementById('curp').value || null,
+                nss: document.getElementById('nss').value || null,
+                puesto: document.getElementById('puesto').value || null,
+                department_name: document.getElementById('department_name').value,
+                start_date: document.getElementById('start_date').value,
+                birth_date: document.getElementById('birth_date').value,
+                fecha_baja: document.getElementById('fecha_baja').value || null,
+                fecha_reingreso: document.getElementById('fecha_reingreso').value || null
+            };
+
+            if (document.getElementById('modal-title').textContent === 'Agregar Nuevo Empleado') {
+                fetch('/admin/personal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(employeeData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        alert(`Error al agregar empleado: ${data.error}`);
+                    } else {
+                        alert('Empleado agregado correctamente');
+                        closeEmployeeModal();
+                        showPersonalManagement();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                const employeeNumber = document.getElementById('employee_number').value;
+                delete employeeData.employee_number; // No enviar el número de empleado al editar
+
+                fetch(`/admin/personal/${employeeNumber}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(employeeData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        alert(`Error al actualizar empleado: ${data.error}`);
+                    } else {
+                        alert('Empleado actualizado correctamente');
+                        closeEmployeeModal();
+                        showPersonalManagement();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+        
+        function convertToDateInputFormat(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`; // Formato esperado por input[type="date"]
+}
+
+
+        function editEmployee(employee_number) {
+            fetch(`/admin/personal/${employee_number}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(employee => {
+                openEditEmployeeModal(employee);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function openAddEmployeeModal() {
+            document.getElementById('employee-form').reset();
+            document.getElementById('modal-title').textContent = 'Agregar Nuevo Empleado';
+            document.getElementById('employee_number').disabled = false;
+            document.getElementById('employee-modal').style.display = 'block';
+            document.getElementById('modal-overlay').style.display = 'block';
+        }
+
+        function openEditEmployeeModal(employee) {
+    document.getElementById('employee_number').value = employee.employee_number;
+    document.getElementById('full_name').value = employee.full_name;
+    document.getElementById('rfc').value = employee.rfc || '';
+    document.getElementById('curp').value = employee.curp || '';
+    document.getElementById('nss').value = employee.nss || '';
+    document.getElementById('puesto').value = employee.puesto || '';
+    document.getElementById('department_name').value = employee.department_name;
+
+    // Asignar la fecha de ingreso, fecha de nacimiento y fecha de baja
+    document.getElementById('start_date').value = convertToDateInputFormat(employee.start_date);
+    document.getElementById('birth_date').value = convertToDateInputFormat(employee.birth_date);
+    document.getElementById('fecha_baja').value = employee.fecha_baja ? convertToDateInputFormat(employee.fecha_baja) : '';
+
+    // Verificar si el empleado está en "Baja"
+    if (employee.department_name === 'Baja') {
+        // Preseleccionar la fecha de reingreso con la fecha actual
+        document.getElementById('fecha_reingreso').value = new Date().toISOString().split('T')[0];
+    } else {
+        document.getElementById('fecha_reingreso').value = employee.fecha_reingreso ? convertToDateInputFormat(employee.fecha_reingreso) : '';
+    }
+
+    document.getElementById('modal-title').textContent = 'Editar Empleado';
+    document.getElementById('employee_number').disabled = true;
+    document.getElementById('employee-modal').style.display = 'block';
+    document.getElementById('modal-overlay').style.display = 'block';
+}
+
+
+
+        function closeEmployeeModal() {
+            document.getElementById('employee-modal').style.display = 'none';
+            document.getElementById('modal-overlay').style.display = 'none';
+
+               // Repetir la última búsqueda y actualizar la tabla
+    searchEmployee();
+        }
+
+        function confirmBaja(employee_number) {
+            const confirmBaja = confirm("¿Realmente quieres dar de baja a este empleado?");
+            if (confirmBaja) {
+                const currentDate = new Date().toISOString().split('T')[0]; // Obtener la fecha actual
+                updateEmployeeToBaja(employee_number, currentDate);
+            }
+        }
+
+        function updateEmployeeToBaja(employee_number, fecha_baja) {
+            fetch(`/admin/personal/baja/${employee_number}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ department_name: 'Baja', fecha_baja: fecha_baja }) // Enviar la fecha de baja actual
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    alert(`Error al dar de baja al empleado: ${data.error}`);
+                } else {
+                    alert('Empleado dado de baja correctamente');
+                    showPersonalManagement(); // Actualizar la lista de empleados
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function exportToCSV() {
+            const headers = ['Departamento', 'Codigo', 'Nombre', 'RFC', 'CURP', 'Puesto', 'Alta', 'Baja', 'Reingreso', 'NSS'];
+            
+            const rows = personalData.map(emp => [
+                emp.department_name,
+                emp.employee_number.toString().padStart(5, '0'),
+                emp.full_name,
+                emp.rfc || '',
+                emp.curp || '',
+                emp.puesto || '',
+                formatDate(emp.start_date),
+                emp.fecha_baja ? formatDate(emp.fecha_baja) : '',
+                emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : '',
+                emp.nss || ''
+            ]);
+
+            const bom = '\uFEFF'; // UTF-8 BOM para soportar caracteres especiales en Excel
+            const csvContent = bom + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+
+            const fileName = prompt("¿Con qué nombre deseas guardar el archivo CSV?", "personal.csv");
+            if (fileName) {
+                link.setAttribute("download", fileName);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert('No estás autenticado. Por favor, inicia sesión.');
+            window.location.href = '/login.html';
+        } else {
+            fetch('/dashboard', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('username').textContent = data.username;
+                document.getElementById('full-name').textContent = data.full_name;
+                document.getElementById('user-role').textContent = data.role;
+
+                localStorage.setItem('role', data.role);
+                
+                if (data.role === 'admin') {
+                    document.getElementById('admin-module').style.display = 'inline';
+                    document.getElementById('add-employee-btn').style.display = 'inline'; // Mostrar botón de agregar empleado
+                   
+                    // Mostrar botones de editar y baja
+                    const editButtons = document.querySelectorAll('.edit-btn');
+                    const bajaButtons = document.querySelectorAll('.baja-btn');
+                   
+                    editButtons.forEach(button => button.style.display = 'inline');
+                    bajaButtons.forEach(button => button.style.display = 'inline');
+                } else {
+                    document.getElementById('add-employee-btn').style.display = 'none'; // Ocultar botón de agregar empleado
+                    
+                    // Ocultar botones de editar y baja
+                    const editButtons = document.querySelectorAll('.edit-btn');
+                    const bajaButtons = document.querySelectorAll('.baja-btn');
+                    
+                    editButtons.forEach(button => button.style.display = 'none');
+                    bajaButtons.forEach(button => button.style.display = 'none');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        function importFromCSV(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const csv = e.target.result;
+            const rows = csv.split('\n').map(row => row.split(','));
+
+            // Procesar los datos del CSV y enviarlos al backend
+            const employees = rows.slice(1).map(row => ({
+                employee_number: row[0].trim(),
+                full_name: row[1].trim(),
+                department_name: row[2].trim(),
+                start_date: row[3].trim(),
+                birth_date: row[4].trim(),
+                rfc: row[5].trim(),
+                curp: row[6].trim(),
+                nss: row[7].trim(),
+                puesto: row[8].trim()
+            }));
+
+            // Enviar al backend
+            fetch('/admin/import-csv', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ employees })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error al importar empleados: ' + data.error);
+                } else {
+                    alert('Empleados importados correctamente');
+                    showPersonalManagement(); // Actualizar la tabla
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        };
+
+        reader.readAsText(file);
+    }
+}
+
+function exportToExcel() {
+    // Obtener la tabla actual
+    const table = document.getElementById('personal-table');
+
+    // Crear un array vacío para almacenar los datos filtrados (sin la columna de acciones)
+    let data = [];
+    
+    // Recorrer las filas de la tabla (incluyendo encabezado)
+    for (let i = 0, row; row = table.rows[i]; i++) {
+        let rowData = [];
+        for (let j = 0, col; col = row.cells[j]; j++) {
+            // Omite la última columna que es la de "Acciones" (índice 13), pero incluye "Fecha de Baja" (índice 8)
+            if (j !== 13) {
+                let cellValue = col.innerText;
+                
+                // Si estamos en la columna de "Número de Empleado" (columna 0), formatearlo a 5 dígitos
+                if (j === 0) {
+                    cellValue = cellValue.padStart(5, '0'); // Rellena con ceros a la izquierda
+                }
+                
+                rowData.push(cellValue);
+            }
+        }
+        data.push(rowData); // Agrega la fila filtrada a los datos
+    }
+
+    // Convertir los datos a una hoja de trabajo de Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte Personal');
+
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, 'reporte_personal.xlsx');
+}
+
+function exportCHC() {
+    // Asegurar que el filtro de departamentos esté en "Todos los departamentos"
+    document.getElementById('department-filter').value = ""; // "" selecciona "Todos los departamentos"
+    searchEmployee(); // Actualizar la tabla para mostrar todos los departamentos
+
+    // Obtener la tabla actual
+    const table = document.getElementById('personal-table');
+
+    // Crear un array vacío para almacenar los datos filtrados (excluyendo empleados con departamento que empieza con EYE)
+    let data = [];
+
+    // Obtener los encabezados de la tabla (sin el encabezado de la columna de acciones)
+    let headers = [];
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== 13) { // Omitir la columna de "Acciones"
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers); // Agregar los encabezados como la primera fila
+
+    // Recorrer las filas de la tabla (excluyendo el encabezado)
+    for (let i = 1, row; row = table.rows[i]; i++) {
+        let rowData = [];
+        let department = '';
+
+        for (let j = 0, col; col = row.cells[j]; j++) {
+            // Omite la columna de "Acciones" (índice 13)
+            if (j !== 13) {
+                let cellValue = col.innerText;
+
+                // Si estamos en la columna de "Departamento" (índice 6), capturamos su valor
+                if (j === 6) {
+                    department = cellValue;
+                }
+
+                // Si estamos en la columna de "Número de Empleado" (columna 0), formatearlo a 5 dígitos
+                if (j === 0) {
+                    cellValue = cellValue.padStart(5, '0');
+                }
+
+                rowData.push(cellValue);
+            }
+        }
+
+        // Verificar si el departamento NO empieza con "EYE" (case-insensitive)
+        // Incluye empleados con el departamento "Baja"
+        if (!department.toUpperCase().startsWith('EYE')) {
+            data.push(rowData); // Agregar solo las filas que cumplen la condición
+        }
+    }
+
+    if (data.length === 1) { // Si no hay filas adicionales, solo están los encabezados
+        alert("No hay empleados fuera del departamento 'EYE' para exportar.");
+        return;
+    }
+
+    // Crear el archivo Excel solo con los empleados que NO tienen departamentos que empiezan con "EYE"
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte CHC');
+
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, 'reporte_CHC.xlsx');
+}
+
+
+
+
+function exportEYE() {
+    // Asegurar que el filtro de departamentos esté en "Todos los departamentos"
+    document.getElementById('department-filter').value = ""; // "" selecciona "Todos los departamentos"
+    searchEmployee(); // Actualizar la tabla para mostrar todos los departamentos
+
+    // Obtener la tabla actual
+    const table = document.getElementById('personal-table');
+
+    // Crear un array vacío para almacenar los datos filtrados (solo los empleados con departamento que empieza con EYE)
+    let data = [];
+
+    // Obtener los encabezados de la tabla (sin el encabezado de la columna de acciones)
+    let headers = [];
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== 13) { // Omitir la columna de "Acciones"
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers); // Agregar los encabezados como la primera fila
+
+    // Recorrer las filas de la tabla (excluyendo el encabezado)
+    for (let i = 1, row; row = table.rows[i]; i++) {
+        let rowData = [];
+        let department = '';
+
+        for (let j = 0, col; col = row.cells[j]; j++) {
+            // Omite la columna de "Acciones" (índice 13)
+            if (j !== 13) {
+                let cellValue = col.innerText;
+
+                // Si estamos en la columna de "Departamento" (índice 6), capturamos su valor
+                if (j === 6) {
+                    department = cellValue;
+                }
+
+                // Si estamos en la columna de "Número de Empleado" (columna 0), formatearlo a 5 dígitos
+                if (j === 0) {
+                    cellValue = cellValue.padStart(5, '0');
+                }
+
+                rowData.push(cellValue);
+            }
+        }
+
+        // Verificar si el departamento empieza con "EYE" (case-insensitive)
+        if (department.toUpperCase().startsWith('EYE')) {
+            data.push(rowData); // Agregar solo las filas que cumplen la condición
+        }
+    }
+
+    if (data.length === 1) { // Si no hay filas adicionales, solo están los encabezados
+        alert("No hay empleados del departamento 'EYE' para exportar.");
+        return;
+    }
+
+    // Crear el archivo Excel solo con los empleados que tienen departamentos que empiezan con "EYE"
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte EYE');
+
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, 'reporte_EYE.xlsx');
+}
+
+function exportPrenomina() {
+    // Obtener la tabla actual
+    const table = document.getElementById('personal-table');
+
+    // Crear un array vacío para almacenar los datos filtrados
+    let data = [];
+
+    // Obtener los encabezados de la tabla para Prenómina
+    let headers = ["Departamento", "Código", "Nombre", "RFC", "CURP", "Puesto", "Alta", "Baja", "Reingreso", "NSS"];
+    data.push(headers); // Agregar los encabezados como la primera fila
+
+    // Recorrer las filas de la tabla (excluyendo el encabezado) para obtener los datos
+    let personalData = [];
+    for (let i = 1, row; row = table.rows[i]; i++) {
+        let rowData = [];
+
+        // Obtener los valores de las columnas específicas (de acuerdo al orden correcto)
+        let department = row.cells[6].innerText;  // Departamento
+        let codigo = row.cells[0].innerText.padStart(5, '0'); // Código (Número de empleado con 5 dígitos)
+        let nombre = row.cells[1].innerText;  // Nombre completo
+        let rfc = row.cells[2].innerText;  // RFC
+        let curp = row.cells[3].innerText; // CURP
+        let nss = row.cells[4].innerText || ''; // NSS (ubicado en la columna 4 en la tabla)
+        let puesto = row.cells[5].innerText;  // Puesto
+        let alta = row.cells[7].innerText;  // Fecha de Alta
+        let baja = row.cells[8].innerText || ''; // Fecha de Baja
+        let reingreso = row.cells[9].innerText || '';  // Fecha de Reingreso
+
+        // Añadir los datos a la lista de personalData (colocando NSS en la última posición)
+        personalData.push({ department, rowData: [department, codigo, nombre, rfc, curp, puesto, alta, baja, reingreso, nss] });
+    }
+
+    // Ordenar los datos por departamento de forma alfabética
+    personalData.sort((a, b) => a.department.localeCompare(b.department));
+
+    // Agregar filas vacías entre departamentos diferentes
+    let lastDepartment = '';
+    personalData.forEach(emp => {
+        if (emp.department !== lastDepartment) {
+            if (lastDepartment !== '') {
+                data.push([]); // Insertar una fila vacía antes de un nuevo departamento
+            }
+            lastDepartment = emp.department;
+        }
+        data.push(emp.rowData); // Agregar los datos de la fila
+    });
+
+    if (data.length === 1) { // Si no hay filas adicionales, solo están los encabezados
+        alert("No hay datos para generar la prenómina.");
+        return;
+    }
+
+    // Crear el archivo Excel con los datos ordenados y separados por departamento
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Prenomina');
+
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, 'prenómina.xlsx');
+}
+
+
+
+
+function exportBajas() {
+    // Obtener la tabla actual
+    const table = document.getElementById('personal-table');
+
+    // Crear un array vacío para almacenar los datos filtrados
+    let data = [];
+
+    // Obtener los encabezados de la tabla (sin la columna de acciones)
+    let headers = [];
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== 13) { // Omitir la columna de "Acciones"
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers); // Agregar los encabezados como la primera fila
+
+    // Recorrer las filas de la tabla (excluyendo el encabezado)
+    for (let i = 1, row; row = table.rows[i]; i++) {
+        let rowData = [];
+        let department = '';
+
+        for (let j = 0, col; col = row.cells[j]; j++) {
+            // Omite la columna de "Acciones" (índice 13)
+            if (j !== 13) {
+                let cellValue = col.innerText;
+
+                // Si estamos en la columna de "Departamento" (índice 6), capturamos su valor
+                if (j === 6) {
+                    department = cellValue;
+                }
+
+                // Si estamos en la columna de "Número de Empleado" (columna 0), formatearlo a 5 dígitos
+                if (j === 0) {
+                    cellValue = cellValue.padStart(5, '0');
+                }
+
+                rowData.push(cellValue);
+            }
+        }
+
+        // Verificar si el departamento es "Baja"
+        if (department.toUpperCase() === 'BAJA') {
+            data.push(rowData); // Agregar solo las filas que cumplen la condición
+        }
+    }
+
+    if (data.length === 1) { // Si no hay filas adicionales, solo están los encabezados
+        alert("No hay empleados en el departamento 'Baja' para exportar.");
+        return;
+    }
+
+    // Crear el archivo Excel solo con los empleados del departamento "Baja"
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte Bajas');
+
+    // Generar el archivo Excel
+    XLSX.writeFile(wb, 'reporte_bajas.xlsx');
+}
+
+function backupDatabase() {
+    fetch('/admin/backup', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al generar el respaldo de la base de datos');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup_${new Date().toISOString().slice(0, 10)}.sql`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al generar el respaldo de la base de datos');
+    });
+}
+
+
+</script>
+
+    
+</body>
+</html>
