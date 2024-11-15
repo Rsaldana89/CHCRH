@@ -12,6 +12,26 @@ const fs = require('fs');
 
 const axios = require('axios');
 
+const schedule = require('node-schedule');
+
+// Programa para reiniciar a las 5:00 AM
+schedule.scheduleJob('0 5 * * *', () => {
+    console.log('Reinicio programado a las 5:00 AM');
+    restartApplication();
+});
+
+// Programa para reiniciar a las 5:00 PM
+schedule.scheduleJob('0 17 * * *', () => {
+    console.log('Reinicio programado a las 5:00 PM');
+    restartApplication();
+});
+
+// Función para reiniciar la aplicación
+function restartApplication() {
+    console.log('Reiniciando aplicación en Railway...');
+    process.exit(0); // Provoca que Railway reinicie el contenedor
+}
+
 
 
 // keepalive en el servidor usando axios
@@ -19,7 +39,7 @@ setInterval(() => {
     axios.get('http://0.0.0.0:3000/keepalive')
         .then(response => console.log("Solicitud de keepalive desde el servidor"))
         .catch(error => console.error("Error manteniendo sesión activa desde el servidor:", error));
-}, 5 * 60 * 1000); // Cada 5 minutos
+}, 20 * 60 * 1000); // Cada 20 minutos
 
 
 app.get('/keepalive', (req, res) => {

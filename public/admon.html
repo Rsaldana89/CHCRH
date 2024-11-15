@@ -51,6 +51,12 @@
             
             <div class="table-container">
                 <table id="personal-table">
+                    <style>
+                        #personal-table {
+                            text-transform: uppercase;
+                        }
+                    </style>
+                    
                     <thead>
                         <tr>
                             <th><button onclick="sortPersonal('employee_number')">ID</button></th>
@@ -400,6 +406,7 @@ function searchEmployee() {
 }
 
 
+
 function calcularEdad(fechaNacimiento) {
     const birthDate = new Date(fechaNacimiento);
     const today = new Date();
@@ -452,18 +459,20 @@ function renderPersonalTable(data = personalData) {
 }
 
 
-        function sortPersonal(criteria) {
-            personalData.sort((a, b) => {
-                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
-                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+function sortPersonal(criteria) {
+    const sortOrder = localStorage.getItem('currentSortOrder') === 'asc' ? 'desc' : 'asc';
+    localStorage.setItem('currentSortCriteria', criteria);
+    localStorage.setItem('currentSortOrder', sortOrder);
 
-                if (a[criteria] < b[criteria]) return -1;
-                if (a[criteria] > b[criteria]) return 1;
-                return 0;
-            });
+    personalData.sort((a, b) => {
+        if (a[criteria] < b[criteria]) return sortOrder === 'asc' ? -1 : 1;
+        if (a[criteria] > b[criteria]) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
 
-            renderPersonalTable();
-        }
+    renderPersonalTable();
+}
+
 
         function formatDate(dateString) {
              const date = new Date(dateString);
@@ -475,70 +484,52 @@ function renderPersonalTable(data = personalData) {
 
         }
 
-        document.getElementById('employee-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+        document.getElementById('employee-form').addEventListener('submit', function (event) {
+    event.preventDefault();
 
-            const employeeData = {
-                employee_number: document.getElementById('employee_number').value,
-                full_name: document.getElementById('full_name').value,
-                rfc: document.getElementById('rfc').value || null,
-                curp: document.getElementById('curp').value || null,
-                nss: document.getElementById('nss').value || null,
-                puesto: document.getElementById('puesto').value || null,
-                department_name: document.getElementById('department_name').value,
-                start_date: document.getElementById('start_date').value,
-                birth_date: document.getElementById('birth_date').value,
-                fecha_baja: document.getElementById('fecha_baja').value || null,
-                fecha_reingreso: document.getElementById('fecha_reingreso').value || null
-            };
+    const employeeData = {
+        employee_number: document.getElementById('employee_number').value,
+        full_name: document.getElementById('full_name').value,
+        rfc: document.getElementById('rfc').value || null,
+        curp: document.getElementById('curp').value || null,
+        nss: document.getElementById('nss').value || null,
+        puesto: document.getElementById('puesto').value || null,
+        department_name: document.getElementById('department_name').value,
+        start_date: document.getElementById('start_date').value,
+        birth_date: document.getElementById('birth_date').value,
+        fecha_baja: document.getElementById('fecha_baja').value || null,
+        fecha_reingreso: document.getElementById('fecha_reingreso').value || null,
+    };
 
-            if (document.getElementById('modal-title').textContent === 'Agregar Nuevo Empleado') {
-                fetch('/admin/personal', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(employeeData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                        alert(`Error al agregar empleado: ${data.error}`);
-                    } else {
-                        alert('Empleado agregado correctamente');
-                        closeEmployeeModal();
-                        showPersonalManagement();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            } else {
-                const employeeNumber = document.getElementById('employee_number').value;
-                delete employeeData.employee_number; // No enviar el número de empleado al editar
+    const isAdding = document.getElementById('modal-title').textContent === 'Agregar Nuevo Empleado';
+    const url = isAdding
+        ? '/admin/personal'
+        : `/admin/personal/${employeeData.employee_number}`;
+    const method = isAdding ? 'POST' : 'PUT';
 
-                fetch(`/admin/personal/${employeeNumber}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(employeeData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                        alert(`Error al actualizar empleado: ${data.error}`);
-                    } else {
-                        alert('Empleado actualizado correctamente');
-                        closeEmployeeModal();
-                        showPersonalManagement();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
-        });
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(employeeData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error:', data.error);
+            alert(`Error: ${data.error}`);
+        } else {
+            console.log(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
+            alert(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
+            closeEmployeeModal(); // Cerrar el modal después de guardar
+            fetchUpdatedPersonalData(); // Actualizar la tabla directamente
+        }
+    })
+    .catch(error => console.error('Error al guardar empleado:', error));
+});
+
         
         function convertToDateInputFormat(dateString) {
     const date = new Date(dateString);
@@ -1084,6 +1075,47 @@ function backupDatabase() {
         alert('Error al generar el respaldo de la base de datos');
     });
 }
+
+function fetchUpdatedPersonalData() {
+    // Guardar el estado actual
+    const currentSearchQuery = document.getElementById('search-input').value.toLowerCase();
+    const currentDepartmentFilter = document.getElementById('department-filter').value;
+    const currentSortCriteria = localStorage.getItem('currentSortCriteria') || '';
+    const currentSortOrder = localStorage.getItem('currentSortOrder') || 'asc';
+
+    // Obtener datos actualizados
+    fetch('/admin/personal', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        personalData = data; // Actualizar los datos globales
+
+        // Aplicar filtros y ordenación después de actualizar los datos
+        const filteredData = personalData.filter(emp => {
+            const matchesSearchQuery = emp.full_name.toLowerCase().includes(currentSearchQuery) || 
+                                       emp.employee_number.toString().includes(currentSearchQuery);
+            const matchesDepartment = currentDepartmentFilter === '' || emp.department_name === currentDepartmentFilter;
+            return matchesSearchQuery && matchesDepartment;
+        });
+
+        if (currentSortCriteria) {
+            filteredData.sort((a, b) => {
+                if (a[currentSortCriteria] < b[currentSortCriteria]) return currentSortOrder === 'asc' ? -1 : 1;
+                if (a[currentSortCriteria] > b[currentSortCriteria]) return currentSortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        renderPersonalTable(filteredData); // Renderizar la tabla con el estado restaurado
+    })
+    .catch(error => console.error('Error al actualizar la tabla:', error));
+}
+
+
 
 
 </script>
