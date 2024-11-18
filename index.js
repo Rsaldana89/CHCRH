@@ -26,6 +26,24 @@ schedule.scheduleJob('0 17 * * *', () => {
     restartApplication();
 });
 
+// Programa para reiniciar a las 3:00 PM
+schedule.scheduleJob('0 15 * * *', () => {
+    console.log('Reinicio programado a las 3:00 PM');
+    restartApplication();
+});
+
+// Programa para reiniciar a las 8:00 PM
+schedule.scheduleJob('0 20 * * *', () => {
+    console.log('Reinicio programado a las 8:00 PM');
+    restartApplication();
+});
+
+// Programa para reiniciar a las 12:00 PM
+schedule.scheduleJob('0 12 * * *', () => {
+    console.log('Reinicio programado a las 12:00 PM');
+    restartApplication();
+});
+
 // Función para reiniciar la aplicación
 function restartApplication() {
     console.log('Reiniciando aplicación en Railway...');
