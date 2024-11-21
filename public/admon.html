@@ -109,7 +109,6 @@
         </div>
 
         <!-- Modal para agregar/editar empleado -->
-        <div class="modal-overlay" id="modal-overlay" onclick="closeEmployeeModal()"></div>
         <div id="employee-modal" class="modal-content">
             <h2 id="modal-title">Agregar Nuevo Empleado</h2>
             <form id="employee-form">
@@ -156,7 +155,7 @@
 
                 <div class="form-group">
                     <label for="birth_date">Fecha de Nacimiento:</label>
-                    <input type="date" id="birth_date" name="birth_date" required>
+                    <input type="date" id="birth_date" name="birth_date">
                 </div>
 
                 <div class="form-group">
@@ -408,7 +407,15 @@ function searchEmployee() {
 
 
 function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) {
+        return "Fecha no proporcionada"; // Devuelve un mensaje o un valor por defecto
+    }
+
     const birthDate = new Date(fechaNacimiento);
+    if (isNaN(birthDate.getTime())) {
+        return "Fecha inválida"; // Manejar casos donde la fecha no sea válida
+    }
+
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -418,6 +425,7 @@ function calcularEdad(fechaNacimiento) {
     }
     return `${age} años`;
 }
+
 
 function renderPersonalTable(data = personalData) {
     const tbody = document.querySelector('#personal-table tbody');
@@ -496,7 +504,7 @@ function sortPersonal(criteria) {
         puesto: document.getElementById('puesto').value || null,
         department_name: document.getElementById('department_name').value,
         start_date: document.getElementById('start_date').value,
-        birth_date: document.getElementById('birth_date').value,
+        birth_date: document.getElementById('birth_date').value || null,
         fecha_baja: document.getElementById('fecha_baja').value || null,
         fecha_reingreso: document.getElementById('fecha_reingreso').value || null,
     };
@@ -573,7 +581,9 @@ function sortPersonal(criteria) {
 
     // Asignar la fecha de ingreso, fecha de nacimiento y fecha de baja
     document.getElementById('start_date').value = convertToDateInputFormat(employee.start_date);
-    document.getElementById('birth_date').value = convertToDateInputFormat(employee.birth_date);
+    document.getElementById('birth_date').value = employee.birth_date 
+        ? convertToDateInputFormat(employee.birth_date) 
+        : ''; // Si no tiene fecha de nacimiento, dejar el campo vacío
     document.getElementById('fecha_baja').value = employee.fecha_baja ? convertToDateInputFormat(employee.fecha_baja) : '';
 
     // Verificar si el empleado está en "Baja"
@@ -609,26 +619,53 @@ function sortPersonal(criteria) {
         }
 
         function updateEmployeeToBaja(employee_number, fecha_baja) {
-            fetch(`/admin/personal/baja/${employee_number}`, {
-                method: 'PUT',
+    fetch(`/admin/personal/baja/${employee_number}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ department_name: 'Baja', fecha_baja: fecha_baja }) // Enviar la fecha de baja actual
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Error:', data.error);
+            alert(`Error al dar de baja al empleado: ${data.error}`);
+        } else {
+            // Actualizar la tabla como al inicio
+            fetch('/admin/personal', {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ department_name: 'Baja', fecha_baja: fecha_baja }) // Enviar la fecha de baja actual
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error('Error:', data.error);
-                    alert(`Error al dar de baja al empleado: ${data.error}`);
-                } else {
-                    alert('Empleado dado de baja correctamente');
-                    showPersonalManagement(); // Actualizar la lista de empleados
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .then(response => response.json())
+            .then(employees => {
+                // Ordenar empleados: activos primero, luego los de baja
+                employees.sort((a, b) => {
+                    if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+                    if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+                    return a.employee_number - b.employee_number; // Ordenar por ID
+                });
+
+                // Actualizar los datos globales y renderizar la tabla
+                personalData = employees;
+                renderPersonalTable();
+
+                // Mostrar notificación de éxito después de actualizar
+                alert('Empleado dado de baja correctamente');
+            })
+            .catch(error => console.error('Error al recargar los empleados:', error));
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al intentar dar de baja al empleado');
+    });
+}
+
+
 
         function exportToCSV() {
             const headers = ['Departamento', 'Codigo', 'Nombre', 'RFC', 'CURP', 'Puesto', 'Alta', 'Baja', 'Reingreso', 'NSS'];

@@ -11,7 +11,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff; /* Fondo blanco */
+    background-color: #f0f0f0a3; /* Color gris suave */; 
 }
 
 h1 {
@@ -138,40 +138,171 @@ td:last-child {
     display: none;
 }
 
-/* Estilos del overlay y el modal cuando están visibles */
+/* Overlay */
 .modal-overlay {
-    display: none; /* Mantener oculto el overlay */
-    position: fixed; /* Fijo en la pantalla */
+    display: none;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 137, 209, 0.5); /* Azul translúcido */
-    z-index: 999; /* Asegura que el overlay esté sobre todo el contenido */
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro translúcido */
+    z-index: 999;
+    backdrop-filter: blur(5px);
 }
 
 .modal-overlay.show {
-    display: block; /* Mostrar el overlay */
+    display: block;
 }
 
+/* Modal */
 .modal-content {
-    background-color: #ffffff; /* Fondo blanco para el modal */
+    background: linear-gradient(to bottom right, #ffffff, #f9f9f9);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
+    width: 90%;
     max-width: 500px;
+    max-height: 90%;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* Asegura que el modal esté sobre el overlay */
-    display: none; /* Mantener oculto el modal */
-    border: 1px solid #0288d1; /* Borde azul más oscuro */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    border: 2px solid #0056b3;
+    overflow-y: auto; /* Habilitar desplazamiento vertical */
+    animation: fadeIn 0.3s ease-out;
 }
 
+/* Mostrar el modal */
 .modal-content.show {
-    display: block; /* Mostrar el modal */
+    display: block;
 }
+
+/* Personalización de la barra de desplazamiento */
+.modal-content::-webkit-scrollbar {
+    width: 8px; /* Ancho de la barra de desplazamiento */
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color de fondo de la pista */
+    border-radius: 10px; /* Bordes redondeados */
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #0288d1, #0056b3); /* Color degradado para el deslizador */
+    border-radius: 10px; /* Bordes redondeados */
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #0056b3, #003a75); /* Color más oscuro al pasar el cursor */
+}
+
+/* Título */
+.modal-content h2 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 20px 0;
+    color: #0056b3;
+    border-bottom: 2px solid #0288d1;
+    padding-bottom: 10px;
+}
+
+/* Formulario */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modal-content label {
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-content input,
+.modal-content select {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.3s;
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #0288d1;
+    outline: none;
+}
+
+/* Botones */
+.modal-content .form-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal-content .form-buttons button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.modal-content #save-employee-btn {
+    background: linear-gradient(to right, #28a745, #218838);
+    color: white;
+    font-weight: bold;
+}
+
+.modal-content #save-employee-btn:hover {
+    background: #218838;
+    transform: scale(1.05);
+}
+
+.modal-content button[type="button"] {
+    background: linear-gradient(to right, #dc3545, #c82333);
+    color: white;
+    font-weight: bold;
+}
+
+.modal-content button[type="button"]:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+/* Animación */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Media Queries para pantallas pequeñas */
+@media (max-height: 500px) {
+    .modal-content {
+        max-height: 80%;
+        overflow-y: auto;
+    }
+
+    .modal-content h2 {
+        font-size: 1.4rem;
+    }
+
+    .modal-content .form-buttons button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
 
 /* Estilos para el recuadro de búsqueda */
 .search-container {
@@ -479,4 +610,24 @@ th:nth-child(1), td:nth-child(1) {
 #attendance-table th:hover {
     text-decoration: underline;
     cursor: pointer; /* Muestra el cursor de mano al pasar sobre el encabezado */
+}
+
+
+
+
+
+
+#personal-table tbody tr:hover td {
+    background-color: #3c3ce1; /* Asegurarse de que las celdas individuales también se resalten */
+    color: #f5f5f7;
+}
+
+#vacation-table tbody tr:hover td {
+    background-color: #3c3ce1; /* Color de fondo de las celdas individuales */
+    color: #f5f5f7; /* Color del texto dentro de las celdas */
+}
+
+#attendance-table tbody tr:hover td {
+    background-color: #3c3ce1; /* Color de fondo de las celdas individuales */
+    color: #f5f5f7; /* Color del texto dentro de las celdas */
 }

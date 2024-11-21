@@ -15,26 +15,8 @@ const axios = require('axios');
 const schedule = require('node-schedule');
 
 // Programa para reiniciar a las 5:00 AM
-schedule.scheduleJob('0 5 * * *', () => {
-    console.log('Reinicio programado a las 5:00 AM');
-    restartApplication();
-});
-
-// Programa para reiniciar a las 5:00 PM
-schedule.scheduleJob('0 17 * * *', () => {
-    console.log('Reinicio programado a las 5:00 PM');
-    restartApplication();
-});
-
-// Programa para reiniciar a las 3:00 PM
-schedule.scheduleJob('0 15 * * *', () => {
-    console.log('Reinicio programado a las 3:00 PM');
-    restartApplication();
-});
-
-// Programa para reiniciar a las 8:00 PM
-schedule.scheduleJob('0 20 * * *', () => {
-    console.log('Reinicio programado a las 8:00 PM');
+schedule.scheduleJob('0 6 * * *', () => {
+    console.log('Reinicio programado a las 6:00 AM');
     restartApplication();
 });
 
@@ -43,6 +25,21 @@ schedule.scheduleJob('0 12 * * *', () => {
     console.log('Reinicio programado a las 12:00 PM');
     restartApplication();
 });
+
+// Programa para reiniciar a las 5:00 PM
+schedule.scheduleJob('0 18 * * *', () => {
+    console.log('Reinicio programado a las 6:00 PM');
+    restartApplication();
+});
+
+
+// Programa para reiniciar a las 8:00 PM
+schedule.scheduleJob('0 21 * * *', () => {
+    console.log('Reinicio programado a las 9:00 PM');
+    restartApplication();
+});
+
+
 
 // Función para reiniciar la aplicación
 function restartApplication() {
@@ -230,15 +227,16 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
         birth_date 
     } = req.body;
 
-    if (!employee_number || !full_name || !department_name || !start_date || !birth_date) {
-        return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    if (!employee_number || !full_name || !department_name || !start_date) {
+        return res.status(400).json({ error: 'Todos los campos obligatorios deben estar presentes' });
     }
-
+    
     const query = `
         INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
+    
     db.query(query, [employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {

@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Control de la dirección de ordenamiento para cada campo
-let sortDirection = { Nombre: true, Departamento: true, ID: true };
+let sortDirection = { ID: true, Nombre: true, Departamento: true };
 
 function sortTableBy(field) {
     const tableBody = document.querySelector('#attendance-table tbody');
@@ -171,7 +171,7 @@ function sortTableBy(field) {
     // Determinar la columna para ordenar según el campo especificado
     rowsArray.sort((a, b) => {
         let aText, bText;
-        
+
         // Comparar valores de acuerdo al campo
         if (field === 'ID') {
             aText = parseInt(a.querySelector('td:first-child').innerText, 10);
@@ -184,6 +184,7 @@ function sortTableBy(field) {
             bText = b.querySelector('td:nth-child(3)').innerText.toLowerCase();
         }
 
+        // Comparar valores para orden ascendente o descendente
         if (aText < bText) return sortDirection[field] ? -1 : 1;
         if (aText > bText) return sortDirection[field] ? 1 : -1;
         return 0;
@@ -197,12 +198,6 @@ function sortTableBy(field) {
     rowsArray.forEach(row => tableBody.appendChild(row));
 }
 
-// Configurar eventos de clic para ordenar al hacer clic en ID, Nombre y Departamento
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelector('#attendance-table thead th:nth-child(1)').addEventListener('click', () => sortTableBy('ID'));
-    document.querySelector('#attendance-table thead th:nth-child(2)').addEventListener('click', () => sortTableBy('Nombre'));
-    document.querySelector('#attendance-table thead th:nth-child(3)').addEventListener('click', () => sortTableBy('Departamento'));
-});
 
 
 function populateWeekAndYearSelectors() {
