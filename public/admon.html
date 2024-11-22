@@ -437,6 +437,7 @@ function renderPersonalTable(data = personalData) {
         const antiguedad = calcularAntiguedad(emp.start_date, emp.fecha_reingreso); // Cálculo de antigüedad
         const edad = calcularEdad(emp.birth_date); // Cálculo de edad
         const fechaNacimiento = emp.birth_date ? formatDate(emp.birth_date) : ''; // Formato de la fecha de nacimiento
+        const isValidDepartment = ALL_DEPARTMENTS.includes(emp.department_name);
 
         let row = `
             <tr>
@@ -446,7 +447,7 @@ function renderPersonalTable(data = personalData) {
                 <td>${emp.curp || ''}</td>
                 <td>${emp.nss || ''}</td>
                 <td>${emp.puesto || ''}</td>
-                <td>${emp.department_name}</td>
+                <td class="${isValidDepartment ? '' : 'invalid-department'}">${emp.department_name}</td>
                 <td>${formatDate(emp.start_date)}</td>
                 <td>${emp.fecha_baja ? formatDate(emp.fecha_baja) : ''}</td>
                 <td>${emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : ''}</td>

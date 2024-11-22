@@ -303,6 +303,12 @@ td:last-child {
     }
 }
 
+.invalid-department {
+    color: red;
+    font-weight: bold;
+}
+
+
 
 /* Estilos para el recuadro de búsqueda */
 .search-container {
