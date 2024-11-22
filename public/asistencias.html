@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Asistencias</title>
+    <title>CHC BITACORA-RH</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
-            Panel Personal CHC
-            <span class="version-info">Versión 1.9 Alpha</span>
+            CHC BITACORA-RH
+            <span class="version-info">Versión 1.11 Alpha</span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
                 <img src="asistencias.png" alt="Asistencias" class="icono-nav">
-                Admon. Asistencias
+                ADMON. ASISTENCIAS
             </a>
             <a href="dashboard.html">
                 <img src="vacaciones.png" alt="Vacaciones" class="icono-nav">
-                Admon. Vacaciones
+                ADMON. VACACIONES
             </a>
             <a href="admon.html">
                 <img src="personal.png" alt="Personal" class="icono-nav">
-                Admon. Personal
+                ADMON. PERSONAL
             </a>
         </div>
 
@@ -38,7 +38,7 @@
 
         <!-- Módulo de Asistencias -->
         <div id="attendances-module">
-            <h2>Asistencias e Incidencias</h2>
+            <h2>ASISTENCIAS E INCIDENCIAS</h2>
             <div class="selectors">
                 <label for="week-selector">Semana:</label>
                 <select id="week-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
@@ -109,6 +109,11 @@
             <a id="logout-btn" class="logout-btn">Cerrar Sesión</a>
             
         </div>
+
+        <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
+            <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
+        </footer>
+        
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 

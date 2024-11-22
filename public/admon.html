@@ -2,29 +2,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Sistema CHC</title>
+    <title>CHC BITACORA-RH</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
-            Panel Personal CHC
-            <span class="version-info">Versión 1.9 Alpha</span> <!-- Agregamos la versión aquí -->
+            CHC BITACORA-RH
+            <span class="version-info">Versión 1.11 Alpha</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
             <a href="asistencias.html">
                 <img src="asistencias.png" alt="Asistencias" class="icono-nav">
-                Admon. Asistencias
+                ADMON. ASISTENCIAS
             </a>
             <a href="dashboard.html">
                 <img src="vacaciones.png" alt="Vacaciones" class="icono-nav">
-                Admon. Vacaciones
+                ADMON. VACACIONES
             </a>
             <a href="admon.html">
                 <img src="personal.png" alt="Personal" class="icono-nav">
-                Admon. Personal
+                ADMON. PERSONAL
             </a>
         </div>
 
@@ -36,7 +36,7 @@
         
         <!-- Módulo de Administración de Personal -->
         <div id="personal-management-module" class="module" style="display: none;">
-            <h2>Administración de Personal</h2>
+            <h2>ADMINISTRACION DE PERSONAL</h2>
 
             <!-- Recuadro de Búsqueda -->
             <div class="search-container">
@@ -60,19 +60,19 @@
                     <thead>
                         <tr>
                             <th><button onclick="sortPersonal('employee_number')">ID</button></th>
-                            <th><button onclick="sortPersonal('full_name')">Nombre Completo</button></th>
+                            <th><button onclick="sortPersonal('full_name')">NOMBRE COMPLETO</button></th>
                             <th><button onclick="sortPersonal('rfc')">RFC</button></th>
                             <th><button onclick="sortPersonal('curp')">CURP</button></th>
                             <th><button onclick="sortPersonal('nss')">NSS</button></th>
-                            <th><button onclick="sortPersonal('puesto')">Puesto</button></th>
-                            <th><button onclick="sortPersonal('department_name')">Departamento</button></th>
-                            <th>Fecha de Ingreso</th>
-                            <th>Fecha de Baja</th>
-                            <th>Fecha de Reingreso</th>
-                            <th>Antigüedad</th>
-                            <th>Fecha de Nacimiento</th> <!-- Nueva columna -->
-                            <th>Edad</th> <!-- Nueva columna -->
-                            <th>Acciones</th>
+                            <th><button onclick="sortPersonal('puesto')">PUESTO</button></th>
+                            <th><button onclick="sortPersonal('department_name')">DEPARTAMENTO</button></th>
+                            <th>FECHA DE INGRESO</th>
+                            <th>FECHA DE BAJA</th>
+                            <th>FECHA DE REINGRESO</th>
+                            <th>ANTIGÜEDAD</th>
+                            <th>FECHA DE NACIMIENTO</th> <!-- Nueva columna -->
+                            <th>EDAD</th> <!-- Nueva columna -->
+                            <th>ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,6 +179,11 @@
 
         <a id="logout-btn" class="logout-btn">Cerrar Sesión</a>
     </div>
+
+    <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
+        <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
+    </footer>
+    
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 
