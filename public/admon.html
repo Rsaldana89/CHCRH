@@ -531,8 +531,12 @@ function sortPersonal(criteria) {
         } else {
             console.log(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
             alert(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
-            closeEmployeeModal(); // Cerrar el modal después de guardar
-            fetchUpdatedPersonalData(); // Actualizar la tabla directamente
+              // Actualizar la tabla directamente después de guardar
+              fetchUpdatedPersonalData();
+
+              // Cerrar el modal después de guardar
+              closeEmployeeModal();
+            
         }
     })
     .catch(error => console.error('Error al guardar empleado:', error));
@@ -602,13 +606,12 @@ function sortPersonal(criteria) {
 
 
 
-        function closeEmployeeModal() {
-            document.getElementById('employee-modal').style.display = 'none';
-            document.getElementById('modal-overlay').style.display = 'none';
+function closeEmployeeModal() {
+    document.getElementById('employee-modal').style.display = 'none';
+    document.getElementById('modal-overlay').style.display = 'none';
 
-               // Repetir la última búsqueda y actualizar la tabla
-    searchEmployee();
-        }
+}
+
 
         function confirmBaja(employee_number) {
             const confirmBaja = confirm("¿Realmente quieres dar de baja a este empleado?");
@@ -1131,7 +1134,7 @@ function fetchUpdatedPersonalData() {
     .then(data => {
         personalData = data; // Actualizar los datos globales
 
-        // Aplicar filtros y ordenación después de actualizar los datos
+        // Aplicar filtros después de actualizar los datos
         const filteredData = personalData.filter(emp => {
             const matchesSearchQuery = emp.full_name.toLowerCase().includes(currentSearchQuery) || 
                                        emp.employee_number.toString().includes(currentSearchQuery);
@@ -1139,11 +1142,23 @@ function fetchUpdatedPersonalData() {
             return matchesSearchQuery && matchesDepartment;
         });
 
+        // Aplicar ordenación según el criterio actual
         if (currentSortCriteria) {
             filteredData.sort((a, b) => {
+                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1; // "Baja" al final
+                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1; // Otros antes que "Baja"
+
+                // Ordenar según el criterio seleccionado
                 if (a[currentSortCriteria] < b[currentSortCriteria]) return currentSortOrder === 'asc' ? -1 : 1;
                 if (a[currentSortCriteria] > b[currentSortCriteria]) return currentSortOrder === 'asc' ? 1 : -1;
                 return 0;
+            });
+        } else {
+            // Si no hay criterio, ordenar por defecto (ID) y mover "Baja" al final
+            filteredData.sort((a, b) => {
+                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+                return a.employee_number - b.employee_number;
             });
         }
 
@@ -1151,6 +1166,7 @@ function fetchUpdatedPersonalData() {
     })
     .catch(error => console.error('Error al actualizar la tabla:', error));
 }
+
 
 
 
