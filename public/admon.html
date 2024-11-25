@@ -181,8 +181,43 @@
     </div>
 
     <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
+        <p id="system-datetime"></p>
         <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
     </footer>
+    
+    <script>
+        function updateSystemDateTime() {
+            const now = new Date();
+            const optionsDate = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long', 
+                timeZone: 'America/Mexico_City' 
+            };
+            const optionsTime = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                timeZone: 'America/Mexico_City', 
+                timeZoneName: 'short' 
+            };
+    
+            const dateString = now.toLocaleDateString('es-MX', optionsDate);
+            const timeString = now.toLocaleTimeString('es-MX', optionsTime);
+    
+            document.getElementById('system-datetime').textContent = `Fecha y hora del sistema: ${dateString}, ${timeString}`;
+        }
+    
+        // Actualizar cada segundo
+        setInterval(updateSystemDateTime, 1000);
+        // Mostrar inmediatamente al cargar
+        updateSystemDateTime();
+    </script>
+    
+    
+
+  
     
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
