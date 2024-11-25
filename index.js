@@ -14,11 +14,16 @@ const axios = require('axios');
 
 const schedule = require('node-schedule');
 
+
+// Ruta de la carpeta de backups
+const backupsDir = path.join(__dirname, 'backups');
+
 // Verificar si la carpeta existe; si no, crearla
 if (!fs.existsSync(backupsDir)) {
     fs.mkdirSync(backupsDir);
     console.log('Carpeta backups creada.');
 }
+
 
 // Programa para reiniciar a las 5:00 AM
 schedule.scheduleJob('0 6 * * *', () => {
