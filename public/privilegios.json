@@ -20,8 +20,8 @@
       }
     },
     "manager": {
-      "asminSI": {
-        "departments": ["Todos"]
+      "managerSI": {
+        "departments": ["SISTEMAS"]
       },
       "managerEYE": {
         "departments": ["Solo departamentos que empiezan con EYE"]
