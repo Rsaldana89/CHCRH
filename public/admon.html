@@ -181,40 +181,29 @@
     </div>
 
     <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
-        <p id="system-datetime"></p>
+        <p id="system-time"></p>
         <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
     </footer>
     
     <script>
-        function updateSystemDateTime() {
+        function updateSystemTime() {
             const now = new Date();
-            const optionsDate = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric', 
-                weekday: 'long', 
-                timeZone: 'America/Mexico_City' 
-            };
-            const optionsTime = { 
+            const options = { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 second: '2-digit', 
                 timeZone: 'America/Mexico_City', 
                 timeZoneName: 'short' 
             };
-    
-            const dateString = now.toLocaleDateString('es-MX', optionsDate);
-            const timeString = now.toLocaleTimeString('es-MX', optionsTime);
-    
-            document.getElementById('system-datetime').textContent = `Fecha y hora del sistema: ${dateString}, ${timeString}`;
+            const timeString = now.toLocaleTimeString('es-MX', options);
+            document.getElementById('system-time').textContent = `Hora del sistema: ${timeString}`;
         }
     
         // Actualizar cada segundo
-        setInterval(updateSystemDateTime, 1000);
-        // Mostrar inmediatamente al cargar
-        updateSystemDateTime();
+        setInterval(updateSystemTime, 1000);
+        // Mostrar la hora inmediatamente al cargar la página
+        updateSystemTime();
     </script>
-    
     
 
   
@@ -536,8 +525,6 @@ function sortPersonal(criteria) {
         document.getElementById('employee-form').addEventListener('submit', function (event) {
     event.preventDefault();
 
-   
-
     const employeeData = {
         employee_number: document.getElementById('employee_number').value,
         full_name: document.getElementById('full_name').value,
@@ -546,7 +533,7 @@ function sortPersonal(criteria) {
         nss: document.getElementById('nss').value || null,
         puesto: document.getElementById('puesto').value || null,
         department_name: document.getElementById('department_name').value,
-        start_date: convertToUTC(document.getElementById('start_date').value),
+        start_date: document.getElementById('start_date').value,
         birth_date: document.getElementById('birth_date').value || null,
         fecha_baja: document.getElementById('fecha_baja').value || null,
         fecha_reingreso: document.getElementById('fecha_reingreso').value || null,
