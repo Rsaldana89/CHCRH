@@ -536,26 +536,21 @@ function sortPersonal(criteria) {
         document.getElementById('employee-form').addEventListener('submit', function (event) {
     event.preventDefault();
 
-    const convertToUTC = (date) => {
-        if (!date) return null; // Maneja fechas vacías
-        const localDate = new Date(date);
-        return new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-    };
+   
 
     const employeeData = {
-    employee_number: document.getElementById('employee_number').value,
-    full_name: document.getElementById('full_name').value,
-    rfc: document.getElementById('rfc').value || null,
-    curp: document.getElementById('curp').value || null,
-    nss: document.getElementById('nss').value || null,
-    puesto: document.getElementById('puesto').value || null,
-    department_name: document.getElementById('department_name').value,
-    start_date: convertToUTC(document.getElementById('start_date').value),
-    birth_date: convertToUTC(document.getElementById('birth_date').value),
-    fecha_baja: convertToUTC(document.getElementById('fecha_baja').value),
-    fecha_reingreso: convertToUTC(document.getElementById('fecha_reingreso').value),
-};
-
+        employee_number: document.getElementById('employee_number').value,
+        full_name: document.getElementById('full_name').value,
+        rfc: document.getElementById('rfc').value || null,
+        curp: document.getElementById('curp').value || null,
+        nss: document.getElementById('nss').value || null,
+        puesto: document.getElementById('puesto').value || null,
+        department_name: document.getElementById('department_name').value,
+        start_date: convertToUTC(document.getElementById('start_date').value),
+        birth_date: document.getElementById('birth_date').value || null,
+        fecha_baja: document.getElementById('fecha_baja').value || null,
+        fecha_reingreso: document.getElementById('fecha_reingreso').value || null,
+    };
 
     const isAdding = document.getElementById('modal-title').textContent === 'Agregar Nuevo Empleado';
     const url = isAdding
