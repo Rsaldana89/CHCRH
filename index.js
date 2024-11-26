@@ -14,6 +14,8 @@ const axios = require('axios');
 
 const schedule = require('node-schedule');
 
+process.env.TZ = 'America/Mexico_City';
+
 
 // Ruta de la carpeta de backups
 const backupsDir = path.join(__dirname, 'backups');
@@ -84,6 +86,7 @@ app.get('/admin/backup', authenticateToken, async (req, res) => {
                 user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
+                timezone: 'local'
             },
             dumpToFile: backupPath,
         });
