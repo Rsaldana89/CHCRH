@@ -306,6 +306,15 @@ function renderAttendanceTable(data) {
     // Filtrar empleados cuyo departamento no sea "Baja"
     const filteredData = data.filter(attendance => attendance.Departamento !== 'Baja');
 
+    // Ordenar los datos por 'Departamento' (ascendente)
+    filteredData.sort((a, b) => {
+        const deptA = a.Departamento.toLowerCase();
+        const deptB = b.Departamento.toLowerCase();
+        if (deptA < deptB) return -1; // Orden ascendente
+        if (deptA > deptB) return 1;
+        return 0; // Igualdad
+    });
+
     filteredData.forEach(attendance => {
         const employeeNumber = attendance['Codigo trabajador'].toString().padStart(5, '0');
 
@@ -530,6 +539,7 @@ function toggleEdit(button) {
 
             if (data.success) {
                 alert('Cambios guardados correctamente.');
+                updateAttendanceTable()
             
             } else {
                 alert('Hubo un error al guardar los cambios.');
