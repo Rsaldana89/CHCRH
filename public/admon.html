@@ -10,7 +10,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.13 Alpha</span> <!-- Agregamos la versión aquí -->
+            <span class="version-info">Versión 1.15 Alpha</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
@@ -59,22 +59,23 @@
                     
                     <thead>
                         <tr>
-                            <th><button onclick="sortPersonal('employee_number')">ID</button></th>
-                            <th><button onclick="sortPersonal('full_name')">NOMBRE COMPLETO</button></th>
-                            <th><button onclick="sortPersonal('rfc')">RFC</button></th>
-                            <th><button onclick="sortPersonal('curp')">CURP</button></th>
-                            <th><button onclick="sortPersonal('nss')">NSS</button></th>
-                            <th><button onclick="sortPersonal('puesto')">PUESTO</button></th>
-                            <th><button onclick="sortPersonal('department_name')">DEPARTAMENTO</button></th>
+                            <th onclick="sortPersonal('employee_number')">ID</th>
+                            <th onclick="sortPersonal('full_name')">NOMBRE COMPLETO</th>
+                            <th onclick="sortPersonal('rfc')">RFC</th>
+                            <th onclick="sortPersonal('curp')">CURP</th>
+                            <th onclick="sortPersonal('nss')">NSS</th>
+                            <th onclick="sortPersonal('puesto')">PUESTO</th>
+                            <th onclick="sortPersonal('department_name')">DEPARTAMENTO</th>
                             <th>FECHA DE INGRESO</th>
                             <th>FECHA DE BAJA</th>
                             <th>FECHA DE REINGRESO</th>
                             <th>ANTIGÜEDAD</th>
-                            <th>FECHA DE NACIMIENTO</th> <!-- Nueva columna -->
-                            <th>EDAD</th> <!-- Nueva columna -->
+                            <th>FECHA DE NACIMIENTO</th>
+                            <th>EDAD</th>
                             <th>ACCIONES</th>
                         </tr>
                     </thead>
+                    
                     <tbody>
                         <!-- Las filas se generarán dinámicamente con JavaScript -->
                     </tbody>
@@ -181,30 +182,10 @@
     </div>
 
     <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
-        <p id="system-time"></p>
         <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
     </footer>
     
-    <script>
-        function updateSystemTime() {
-            const now = new Date();
-            const options = { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit', 
-                timeZone: 'America/Mexico_City', 
-                timeZoneName: 'short' 
-            };
-            const timeString = now.toLocaleTimeString('es-MX', options);
-            document.getElementById('system-time').textContent = `Hora del sistema: ${timeString}`;
-        }
-    
-        // Actualizar cada segundo
-        setInterval(updateSystemTime, 1000);
-        // Mostrar la hora inmediatamente al cargar la página
-        updateSystemTime();
-    </script>
-    
+
 
   
     
@@ -1196,6 +1177,39 @@ function fetchUpdatedPersonalData() {
     })
     .catch(error => console.error('Error al actualizar la tabla:', error));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tableContainer = document.querySelector('.table-container');
+
+    let isDragging = false;
+    let startX, scrollLeft;
+
+    tableContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX - tableContainer.offsetLeft;
+        scrollLeft = tableContainer.scrollLeft;
+        tableContainer.style.cursor = 'grabbing';
+    });
+
+    tableContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        tableContainer.style.cursor = 'grab';
+    });
+
+    tableContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        tableContainer.style.cursor = 'grab';
+    });
+
+    tableContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return; // Solo arrastrar si está presionado el botón del ratón
+        e.preventDefault();
+        const x = e.pageX - tableContainer.offsetLeft; // Coordenada horizontal
+        const walk = x - startX; // Desplazamiento horizontal
+        tableContainer.scrollLeft = scrollLeft - walk;
+    });
+});
+
 
 
 

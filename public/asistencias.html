@@ -11,7 +11,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.11 Alpha</span>
+            <span class="version-info">Versión 1.15 Alpha</span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -885,6 +885,38 @@ function translateValue(value) {
 
     return result;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tableContainer = document.querySelector('.table-container');
+
+    let isDragging = false;
+    let startX, scrollLeft;
+
+    tableContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.pageX - tableContainer.offsetLeft;
+        scrollLeft = tableContainer.scrollLeft;
+        tableContainer.style.cursor = 'grabbing';
+    });
+
+    tableContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        tableContainer.style.cursor = 'grab';
+    });
+
+    tableContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        tableContainer.style.cursor = 'grab';
+    });
+
+    tableContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return; // Solo arrastrar si está presionado el botón del ratón
+        e.preventDefault();
+        const x = e.pageX - tableContainer.offsetLeft; // Coordenada horizontal
+        const walk = x - startX; // Desplazamiento horizontal
+        tableContainer.scrollLeft = scrollLeft - walk;
+    });
+});
 
 
 

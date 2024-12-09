@@ -6,12 +6,12 @@ body {
 }
 
 .container {
-    max-width: calc(100% - 200px); /* 100px de margen a cada lado */
+    max-width: calc(100% - 100px); /* 50px de margen a cada lado */
     margin: 0 auto;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    background-color: #f0f0f0a3; /* Color gris suave */; 
+    background-color: #f0f0f0a3; /* Color gris suave */
 }
 
 h1 {
@@ -39,6 +39,8 @@ h1 {
 .toolbar a:hover {
     text-decoration: underline;
 }
+
+
 
 .user-info {
     text-align: center;
@@ -362,37 +364,6 @@ td:last-child {
     background: linear-gradient(135deg, #3b82d1, #006bb0); /* Degradado más oscuro al pasar el ratón */
 }
 
-/* ===== Estilos para los botones "Editar", "Exportar" y "Exportar Todos" ===== */
-
-/* Botón "Editar" en cada fila */
-.edit-btn {
-    margin-right: 5px;
-    padding: 5px 10px;
-    background-color: #ffc107; /* Color amarillo */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.edit-btn:hover {
-    background-color: #e0a800;
-}
-
-/* Botón "Exportar" en cada fila */
-.export-btn {
-    margin-left: 5px;
-    padding: 5px 10px;
-    background-color: #28a745; /* Color verde */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.export-btn:hover {
-    background-color: #218838;
-}
 
 /* Contenedor y botón "Exportar Todos" */
 .export-all-container {
@@ -621,8 +592,6 @@ th:nth-child(1), td:nth-child(1) {
 
 
 
-
-
 #personal-table tbody tr:hover td {
     background-color: #3c3ce1; /* Asegurarse de que las celdas individuales también se resalten */
     color: #f5f5f7;
@@ -636,4 +605,200 @@ th:nth-child(1), td:nth-child(1) {
 #attendance-table tbody tr:hover td {
     background-color: #3c3ce1; /* Color de fondo de las celdas individuales */
     color: #f5f5f7; /* Color del texto dentro de las celdas */
+}
+
+/* css ántañña responsiva a celular*/
+@media (max-width: 768px) {
+    body {
+        padding: 10px; /* Aplicar uniformemente a todas las resoluciones menores de 768px */
+    }
+
+    .container {
+        max-width: calc(100% - 20px); /* Menos margen para mejor aprovechamiento del espacio */
+        padding: 15px; /* Adecuado para la mayoría de dispositivos móviles y tablets */
+    }
+
+    h1 { /* Corregido, sin punto para seleccionar el elemento */
+        font-size: 20px; /* Tamaño adecuado para lectura en dispositivos más pequeños */
+    }
+
+    .toolbar, .user-info, .logout-btn {
+        font-size: 14px; /* Tamaño de fuente ajustado para legibilidad */
+    }
+
+    .table-container table, th, td {
+        font-size: 12px; /* Reducción de la fuente para adaptarse a espacios más reducidos */
+    }
+
+    .table-container:active {
+        cursor: grabbing;
+    }
+}
+
+/* Ajustes específicos para dispositivos muy pequeños, menos de 600px */
+@media (max-width: 600px) {
+    .container {
+        max-width: calc(100% - 40px); /* Ajuste para muy pequeños dispositivos */
+    }
+}
+
+/* Estilos base para todos los botones */
+button, .button {
+    font-size: 13px; /* Tamaño de fuente equilibrado */
+    font-weight: bold; /* Texto más grueso */
+    padding: 10px 15px; /* Espacio suficiente para un clic fácil */
+    background-color: #ffffff; /* Fondo blanco para un look limpio */
+    color: #626262; /* Color de texto gris oscuro para contraste */
+    border: 2px solid transparent; /* Bordes transparentes inicialmente */
+    border-radius: 4px; /* Bordes ligeramente redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada para efecto de elevación */
+    cursor: pointer; /* Cursor de mano */
+    transition: background-color 0.3s, border-color 0.3s, transform 0.2s, box-shadow 0.3s; /* Transiciones suaves */
+    text-decoration: none; /* Sin subrayado */
+    display: inline-block; /* Comportamiento de bloque en línea */
+}
+
+/* Efecto de hover para todos los botones */
+button:hover, .button:hover {
+    background-color: #f0f0f0; /* Cambia al color de fondo al pasar el ratón */
+    transform: translateY(-3px); /* Mueve el botón hacia arriba */
+    box-shadow: 0 5px 7px rgba(0, 0, 0, 0.3); /* Sombra más intensa */
+}
+
+/* Media query para ajustes en dispositivos móviles */
+@media (max-width: 768px) {
+    button, .button {
+        font-size: 13px; /* Tamaño de fuente más pequeño para dispositivos móviles */
+        padding: 10px 20px; /* Padding reducido para ahorrar espacio */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* Sombra menos pronunciada para una apariencia más ligera */
+    }
+}
+
+/* Ajustes para pantallas grandes */
+@media (min-width: 1200px) {
+    button, .button {
+        font-size: calc(13px + 0.3vw); /* Ajustar el tamaño de la fuente según el ancho de la ventana */
+    }
+}
+
+/* Botón "Editar" */
+.edit-btn {
+    background-color: #ffc107; /* Color amarillo */
+    border-color: #e6a800; /* Borde amarillo más oscuro para mayor definición */
+}
+
+
+
+/* Botón "Exportar" */
+.export-btn {
+    background-color: #28a745; /* Color verde */
+    border-color: #218838; /* Borde verde más oscuro */
+}
+
+
+
+/* Nuevo botón "Baja" con color rojo */
+.delete-btn {
+    background-color: #ff6347; /* Color rojo (tomate) */
+    border-color: #e05241; /* Borde rojo más oscuro */
+}
+
+.delete-btn:hover, .delete-btn:focus {
+    background-color: #e05241; /* Rojo más oscuro al interactuar */
+    border-color: #c04439;
+    transform: translateY(-3px); /* Mueve el botón hacia arriba */
+    box-shadow: 0 5px 7px rgba(0, 0, 0, 0.3); /* Sombra más intensa */
+}
+
+thead th {
+    cursor: pointer;
+    background-color: #f4f4f4;
+    transition: background-color 0.3s, text-decoration 0.3s ease-in-out;
+    padding: 10px; /* Asegura suficiente espacio alrededor del texto */
+    text-align: center; /* Centra el texto dentro del encabezado */
+    position: relative; /* Necesario para los pseudoelementos */
+}
+
+thead th:hover {
+    background-color: #e0e0e0; /* Cambia el color de fondo al pasar el ratón */
+    text-decoration: underline; /* Subraya el texto al pasar el ratón */
+}
+
+/* Opcional: Agrega un efecto de subrayado más estilizado usando pseudoelementos */
+thead th::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background-color: transparent;
+    transition: background-color 0.3s;
+    border-radius: 1px; /* Bordes redondeados para la línea */
+}
+
+thead th:hover::after {
+    background-color: #0277bd; /* Cambia el color de la línea al pasar el ratón */
+}
+
+/* Selectores responsivos */
+
+.selectors {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center; /* Alinea verticalmente los elementos */
+    gap: 10px; /* Espacio entre elementos */
+    padding: 10px;
+    background-color: #f4f4f4; /* Fondo para el contenedor de los selectores */
+    border-radius: 5px;
+}
+
+.selectors label {
+    font-weight: bold; /* Texto en negrita para las etiquetas */
+    margin-right: 5px; /* Espacio a la derecha de las etiquetas */
+}
+
+.selectors select {
+    padding: 5px 10px; /* Espacio interno para los selectores */
+    border: 1px solid #ccc; /* Borde sutil */
+    border-radius: 4px; /* Bordes redondeados */
+    cursor: pointer; /* Cursor de mano */
+}
+
+.selectors input[type="text"] {
+    padding: 5px 10px; /* Espacio interno */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff; /* Fondo blanco */
+}
+
+.selectors button {
+    padding: 6px 12px;
+    background-color: #3a8edd; /* Color de fondo azul */
+    color: white; /* Texto en blanco */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s; /* Transiciones para efecto interactivo */
+}
+
+.selectors button:hover {
+    background-color: #297ccf; /* Color azul más oscuro al pasar el ratón */
+    transform: translateY(-2px); /* Efecto de elevación al pasar el ratón */
+}
+
+
+/* Media Queries para ajustes en dispositivos móviles */
+@media (max-width: 768px) {
+    .selectors {
+        flex-direction: column; /* Los elementos se apilan verticalmente en pantallas pequeñas */
+    }
+
+    .selectors label {
+        margin-bottom: 5px; /* Espacio debajo de las etiquetas para claridad */
+    }
+
+    .selectors select, .selectors input[type="text"], .selectors button {
+        width: 100%; /* Los elementos ocupan todo el ancho disponible */
+    }
 }
