@@ -447,12 +447,23 @@ th:nth-child(1), td:nth-child(1) {
 .attendance-table input[type="number"][name="COMISION"],
 .attendance-table input[type="number"][name="BONO_PRODUCTIVIDAD"],
 .attendance-table input[type="number"][name="APOYO_TRANSPORTE"],
-.attendance-table input[type="number"][name="DESCUENTO_PRESTAMO_INVENTARIO"] {
+.attendance-table input[type="number"][name="DESCUENTO_PRESTAMO_INVENTARIO"],
+.attendance-table input[type="number"][name="BONO_RECOMENDACION"],
+.attendance-table input[type="number"][name="DESCUENTO_EFECTIVO"] {
     width: 80px; /* Reducir el ancho para campos numéricos */
     text-align: center; /* Centrar el texto dentro de los campos */
     padding: 5px;
     box-sizing: border-box;
 }
+
+.attendance-table select {
+    font-size: 16px; /* Aumenta el tamaño de la letra */
+    height: 35px;    /* Incrementa la altura del select */
+    padding: 0 5px;  /* Un poco de relleno interno */
+    box-sizing: border-box; /* Asegura que el padding se cuente dentro del ancho/alto */
+}
+
+
 
 /* Ajustar el ancho del campo de "Notas" */
 .attendance-table input[type="text"][name="NOTAS"] {
