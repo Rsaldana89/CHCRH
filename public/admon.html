@@ -10,7 +10,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.15 Alpha</span> <!-- Agregamos la versión aquí -->
+            <span class="version-info">Versión 1.20 Alpha</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
@@ -152,11 +152,6 @@
                 <div class="form-group">
                     <label for="start_date">Fecha de Ingreso:</label>
                     <input type="date" id="start_date" name="start_date" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="birth_date">Fecha de Nacimiento:</label>
-                    <input type="date" id="birth_date" name="birth_date">
                 </div>
 
                 <div class="form-group">
@@ -390,6 +385,11 @@ function showPersonalManagement(allowedDepartments) {
         } else {
             personalData = data.filter(emp => allowedDepartments.includes(emp.department_name));
         }
+
+
+        // Ordenar por ID (employee_number) de forma ascendente
+        personalData.sort((a, b) => a.employee_number - b.employee_number);
+
         
         renderPersonalTable(personalData);
         document.getElementById('personal-management-module').style.display = 'block';
@@ -415,27 +415,55 @@ function searchEmployee() {
 }
 
 
-
-function calcularEdad(fechaNacimiento) {
-    if (!fechaNacimiento) {
-        return "Fecha no proporcionada"; // Devuelve un mensaje o un valor por defecto
+function extractBirthDateFromRFC(rfc) {
+    if (!rfc || rfc.length < 10) {
+        return null; // No se puede extraer si no tiene longitud suficiente
     }
 
-    const birthDate = new Date(fechaNacimiento);
+    // Tomar los 6 dígitos que vienen después de los primeros 4 caracteres.
+    // Ejemplo RFC: ABCDYYMMDD...
+    const datePart = rfc.substring(4, 10); // del caracter 4 al 9 (0-based)
+    const yearStr = datePart.substring(0, 2);
+    const monthStr = datePart.substring(2, 4);
+    const dayStr = datePart.substring(4, 6);
+
+    // Convertir a números
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const day = parseInt(dayStr, 10);
+
+    // Validar fecha sencilla (no super exhaustivo, pero básico)
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        return null;
+    }
+
+    // Asumiremos años entre 1900 y 2099
+    const fullYear = year >= 0 && year <= 99 ? (year < 50 ? 2000 + year : 1900 + year) : null;
+    if (!fullYear || month < 1 || month > 12 || day < 1 || day > 31) {
+        return null; 
+    }
+
+    // Crear objeto Date
+    const birthDate = new Date(fullYear, month - 1, day);
     if (isNaN(birthDate.getTime())) {
-        return "Fecha inválida"; // Manejar casos donde la fecha no sea válida
+        return null;
     }
 
+    return birthDate;
+}
+
+function calcularEdadDesdeFechaNacimiento(birthDate) {
+    if (!birthDate || isNaN(birthDate.getTime())) {
+        return "N/D";
+    }
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
     }
     return `${age} años`;
 }
-
 
 function renderPersonalTable(data = personalData) {
     const tbody = document.querySelector('#personal-table tbody');
@@ -444,9 +472,12 @@ function renderPersonalTable(data = personalData) {
     const role = localStorage.getItem('role');
 
     data.forEach(emp => {
-        const antiguedad = calcularAntiguedad(emp.start_date, emp.fecha_reingreso); // Cálculo de antigüedad
-        const edad = calcularEdad(emp.birth_date); // Cálculo de edad
-        const fechaNacimiento = emp.birth_date ? formatDate(emp.birth_date) : ''; // Formato de la fecha de nacimiento
+        // Extraer fecha de nacimiento del RFC
+        const birthDateFromRFC = extractBirthDateFromRFC(emp.rfc);
+        const fechaNacimiento = birthDateFromRFC ? formatDate(birthDateFromRFC) : 'N/D';
+        const edad = birthDateFromRFC ? calcularEdadDesdeFechaNacimiento(birthDateFromRFC) : 'N/D';
+
+        const antiguedad = calcularAntiguedad(emp.start_date, emp.fecha_reingreso); 
         const isValidDepartment = ALL_DEPARTMENTS.includes(emp.department_name);
 
         let row = `
@@ -462,8 +493,8 @@ function renderPersonalTable(data = personalData) {
                 <td>${emp.fecha_baja ? formatDate(emp.fecha_baja) : ''}</td>
                 <td>${emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : ''}</td>
                 <td>${antiguedad}</td>
-                <td>${fechaNacimiento}</td> <!-- Mostrar fecha de nacimiento -->
-                <td>${edad}</td> <!-- Mostrar edad -->
+                <td>${fechaNacimiento}</td> <!-- Fecha de nacimiento desde RFC o N/D -->
+                <td>${edad}</td> <!-- Edad calculada desde RFC o N/D -->
                 <td>`;
 
         if (role === 'admin') {
@@ -515,7 +546,6 @@ function sortPersonal(criteria) {
         puesto: document.getElementById('puesto').value || null,
         department_name: document.getElementById('department_name').value,
         start_date: document.getElementById('start_date').value,
-        birth_date: document.getElementById('birth_date').value || null,
         fecha_baja: document.getElementById('fecha_baja').value || null,
         fecha_reingreso: document.getElementById('fecha_reingreso').value || null,
     };
@@ -596,9 +626,6 @@ function sortPersonal(criteria) {
 
     // Asignar la fecha de ingreso, fecha de nacimiento y fecha de baja
     document.getElementById('start_date').value = convertToDateInputFormat(employee.start_date);
-    document.getElementById('birth_date').value = employee.birth_date 
-        ? convertToDateInputFormat(employee.birth_date) 
-        : ''; // Si no tiene fecha de nacimiento, dejar el campo vacío
     document.getElementById('fecha_baja').value = employee.fecha_baja ? convertToDateInputFormat(employee.fecha_baja) : '';
 
     // Verificar si el empleado está en "Baja"
@@ -775,7 +802,6 @@ function closeEmployeeModal() {
                 full_name: row[1].trim(),
                 department_name: row[2].trim(),
                 start_date: row[3].trim(),
-                birth_date: row[4].trim(),
                 rfc: row[5].trim(),
                 curp: row[6].trim(),
                 nss: row[7].trim(),
@@ -1133,6 +1159,7 @@ function fetchUpdatedPersonalData() {
     const currentDepartmentFilter = document.getElementById('department-filter').value;
     const currentSortCriteria = localStorage.getItem('currentSortCriteria') || '';
     const currentSortOrder = localStorage.getItem('currentSortOrder') || 'asc';
+    const scrollPosition = document.querySelector('.table-container').scrollLeft;
 
     // Obtener datos actualizados
     fetch('/admin/personal', {
@@ -1143,9 +1170,9 @@ function fetchUpdatedPersonalData() {
     })
     .then(response => response.json())
     .then(data => {
-        personalData = data; // Actualizar los datos globales
+        personalData = data;
 
-        // Aplicar filtros después de actualizar los datos
+        // Filtrar datos
         const filteredData = personalData.filter(emp => {
             const matchesSearchQuery = emp.full_name.toLowerCase().includes(currentSearchQuery) || 
                                        emp.employee_number.toString().includes(currentSearchQuery);
@@ -1153,30 +1180,30 @@ function fetchUpdatedPersonalData() {
             return matchesSearchQuery && matchesDepartment;
         });
 
-        // Aplicar ordenación según el criterio actual
+        // Aplicar ordenación
         if (currentSortCriteria) {
             filteredData.sort((a, b) => {
-                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1; // "Baja" al final
-                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1; // Otros antes que "Baja"
-
-                // Ordenar según el criterio seleccionado
                 if (a[currentSortCriteria] < b[currentSortCriteria]) return currentSortOrder === 'asc' ? -1 : 1;
                 if (a[currentSortCriteria] > b[currentSortCriteria]) return currentSortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
         } else {
-            // Si no hay criterio, ordenar por defecto (ID) y mover "Baja" al final
-            filteredData.sort((a, b) => {
-                if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
-                if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
-                return a.employee_number - b.employee_number;
-            });
+            filteredData.sort((a, b) => a.employee_number - b.employee_number);
         }
 
-        renderPersonalTable(filteredData); // Renderizar la tabla con el estado restaurado
+        renderPersonalTable(filteredData);
+
+        // Ordenar por ID (employee_number) de forma ascendente
+        personalData.sort((a, b) => a.employee_number - b.employee_number);
+
+
+
+        // Restaurar el desplazamiento de la tabla
+        document.querySelector('.table-container').scrollLeft = scrollPosition;
     })
     .catch(error => console.error('Error al actualizar la tabla:', error));
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableContainer = document.querySelector('.table-container');

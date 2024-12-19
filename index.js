@@ -196,7 +196,6 @@ app.get('/admin/personal', authenticateToken, (req, res) => {
         start_date, 
         fecha_baja, 
         fecha_reingreso, 
-        birth_date,
         days_pending,   -- Agregado
         days_taken      -- Agregado
     FROM personal
@@ -237,8 +236,7 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
         department_name, 
         start_date, 
         fecha_baja, 
-        fecha_reingreso, 
-        birth_date 
+        fecha_reingreso 
     } = req.body;
 
     if (!employee_number || !full_name || !department_name || !start_date) {
@@ -247,11 +245,11 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
     
     const query = `
         INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     
-    db.query(query, [employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date], (err, result) => {
+    db.query(query, [employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ error: 'El número de empleado ya existe' });
@@ -305,12 +303,13 @@ app.put('/admin/personal/vacaciones/:employee_number', authenticateToken, (req, 
 });
 
 // Nueva ruta para actualizar los registros de asistencia en la base de datos
+// Nueva ruta para actualizar los registros de asistencia en la base de datos
 app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (req, res) => {
     const { employee_number, week, year } = req.params;
     let { 
         LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO, 
         COMPENSACION, COMISION, BONO_PRODUCTIVIDAD, APOYO_TRANSPORTE, PRIMA_DOMINICAL,
-        DESCUENTO_PRESTAMO_INVENTARIO, NOTAS
+        DESCUENTO_PRESTAMO_INVENTARIO, BONO_RECOMENDACION, DESCUENTO_EFECTIVO, NOTAS
     } = req.body;
 
     // Asegurarse de que los valores numéricos se procesen correctamente
@@ -320,6 +319,8 @@ app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (r
     APOYO_TRANSPORTE = APOYO_TRANSPORTE ? parseFloat(APOYO_TRANSPORTE) : 0;
     PRIMA_DOMINICAL = PRIMA_DOMINICAL ? parseFloat(PRIMA_DOMINICAL) : 0;
     DESCUENTO_PRESTAMO_INVENTARIO = DESCUENTO_PRESTAMO_INVENTARIO ? parseFloat(DESCUENTO_PRESTAMO_INVENTARIO) : 0;
+    BONO_RECOMENDACION = BONO_RECOMENDACION ? parseFloat(BONO_RECOMENDACION) : 0;
+    DESCUENTO_EFECTIVO = DESCUENTO_EFECTIVO ? parseFloat(DESCUENTO_EFECTIVO) : 0;
     NOTAS = NOTAS || ''; // Si está vacío, lo definimos como una cadena vacía
 
     const query = `
@@ -337,6 +338,8 @@ app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (r
             APOYO_TRANSPORTE = ?, 
             PRIMA_DOMINICAL = ?, 
             DESCUENTO_PRESTAMO_INVENTARIO = ?, 
+            BONO_RECOMENDACION = ?, 
+            DESCUENTO_EFECTIVO = ?, 
             NOTAS = ?
         WHERE EMPLOYEE_NUMBER = ? AND WEEK_NUMBER = ? AND YEAR = ?
     `;
@@ -344,7 +347,8 @@ app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (r
     const values = [
         LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO, 
         COMPENSACION, COMISION, BONO_PRODUCTIVIDAD, APOYO_TRANSPORTE, PRIMA_DOMINICAL,
-        DESCUENTO_PRESTAMO_INVENTARIO, NOTAS, employee_number, week, year
+        DESCUENTO_PRESTAMO_INVENTARIO, BONO_RECOMENDACION, DESCUENTO_EFECTIVO, NOTAS, 
+        employee_number, week, year
     ];
 
     db.query(query, values, (err, result) => {
@@ -354,8 +358,8 @@ app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (r
         }
         res.json({ success: true, message: 'Asistencia actualizada correctamente' });
     });
-
 });
+
 
 
 
@@ -373,8 +377,7 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
         department_name, 
         start_date, 
         fecha_baja, 
-        fecha_reingreso, 
-        birth_date 
+        fecha_reingreso 
     } = req.body;
 
     const query = `
@@ -387,12 +390,11 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
             department_name = ?, 
             start_date = ?, 
             fecha_baja = ?, 
-            fecha_reingreso = ?, 
-            birth_date = ?
+            fecha_reingreso = ?
         WHERE employee_number = ?
     `;
 
-    db.query(query, [full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date, employee_number], (err) => {
+    db.query(query, [full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, employee_number], (err) => {
         if (err) {
             return res.status(500).json({ error: 'Error al actualizar el empleado' });
         }
@@ -442,6 +444,8 @@ app.get('/admin/attendances', authenticateToken, (req, res) => {
             COALESCE(a.DIAS_FESTIVOS, 0) AS 'Dias festivos',
             COALESCE(a.INCAPACIDAD, 0) AS 'Incapacidad',
             COALESCE(a.DESCUENTO_PRESTAMO_INVENTARIO, 0) AS 'Descuento prestamo inventario',
+            COALESCE(a.BONO_RECOMENDACION, 0) AS 'Bono recomendacion',
+            COALESCE(a.DESCUENTO_EFECTIVO, 0) AS 'Descuento efectivo',
             COALESCE(a.NOTAS, 'Sin notas') AS 'Notas'
         FROM asistencias a
         INNER JOIN personal p ON a.EMPLOYEE_NUMBER = p.employee_number
@@ -449,13 +453,17 @@ app.get('/admin/attendances', authenticateToken, (req, res) => {
         ORDER BY p.employee_number;
     `;
 
-    db.query(query, [week, year], (err, results) => {
+    const values = [week, year];
+
+    db.query(query, values, (err, results) => {
         if (err) {
-            return res.status(500).json({ error: 'Error al obtener los datos de asistencias' });
+            console.error('Error al obtener las asistencias:', err);
+            return res.status(500).json({ error: 'Error al obtener las asistencias' });
         }
         res.json(results);
     });
 });
+
 
 process.on('uncaughtException', (error) => {
     console.error("Uncaught Exception:", error);

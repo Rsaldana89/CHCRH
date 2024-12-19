@@ -11,7 +11,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.15 Alpha</span>
+            <span class="version-info">Versión 1.20 </span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -70,18 +70,20 @@
                             <th>VI</th>
                             <th>SA</th>
                             <th>DO</th>
+                            <th>Prima Dominical</th>
                             <th>Total Extra</th>
                             <th>DT</th>
                             <th>DFT</th>
                             <th>Falta</th>
                             <th>INC</th>
                             <th>VAC</th>
-                            <th>Prima Dominical</th>
                             <th>Compensación</th>
                             <th>Comisión</th>
                             <th>Bono Productividad</th>
                             <th>Apoyo Transporte</th>
                             <th>Descuento Préstamo Inventario</th>
+                            <th>Bono Recomendación</th>
+                            <th>Descuento Efectivo</th>
                             <th>Notas</th>
                             <th>Acciones</th>
                         </tr>
@@ -96,14 +98,29 @@
                     <img src="excel.png" alt="Icono Excel" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 10px;">
                     Reportes y Exportación a XLSX
                 </h3>
+                
+                <!-- Grupo: Exportar tabla completa -->
+                <h4>Reportes Generales</h4>
                 <button onclick="exportarAsistenciasExcel()">Exportar Tabla Completa</button>
+            
+                <!-- Grupo: Asistencias -->
+                <h4>Reportes de Asistencias</h4>
                 <button onclick="exportarAsistenciasEYE()">Exportar Asistencias EYE</button>
                 <button onclick="exportarAsistenciasCHC()">Exportar Asistencias CHC</button>
+            
+                <!-- Grupo: Incidencias Compaq -->
+                <h4>Reportes de Incidencias Compaq</h4>
                 <button onclick="exportarAsistenciasCompaq()">Exportar Incidencias Compaq</button>
                 <button onclick="exportarAsistenciasCompaqCHC()">Exportar Incidencias Compaq CHC</button>
                 <button onclick="exportarAsistenciasCompaqEYE()">Exportar Incidencias Compaq EYE</button>
+            
+                <!-- Grupo: Solo Incidencias -->
+                <h4>Reportes de Solo Incidencias</h4>
+                <button onclick="SoloIncidenciasCompaq()">Exportar Solo Incidencias Compaq</button>
+                <button onclick="SoloIncidenciasCHC()">Exportar Solo Incidencias CHC</button>
+                <button onclick="SoloIncidenciasEYE()">Exportar Solo Incidencias EYE</button>
             </div>
-
+            
             <div style="height: 50px;"></div>
                
             <a id="logout-btn" class="logout-btn">Cerrar Sesión</a>
@@ -404,18 +421,20 @@ function renderAttendanceTable(data) {
                 ${renderComboBox('VIERNES', attendance.VIERNES || '1')}
                 ${renderComboBox('SABADO', attendance.SABADO || '1')}
                 ${renderComboBox('DOMINGO', attendance.DOMINGO || '1')}
+                ${renderComboBox('Prima Dominical', attendance['Prima dominical'] || '0', [0, 1])} 
                 <td>${totalExtra}</td>
                 <td>${totalDT}</td>
                 <td>${totalDFT}</td>
                 <td>${totalF}</td>
                 <td>${totalINC}</td>
                 <td>${totalVAC}</td>
-                ${renderComboBox('Prima Dominical', attendance['Prima dominical'] || '0', [0, 1])} 
                 <td><input type="number" value="${attendance.Compensacion || '0'}" disabled ondblclick="enableEdit(this)" name="COMPENSACION"></td>
                 <td><input type="number" value="${attendance.Comision || '0'}" disabled ondblclick="enableEdit(this)" name="COMISION"></td>
                 <td><input type="number" value="${attendance['Bono productividad'] || '0'}" disabled ondblclick="enableEdit(this)" name="BONO_PRODUCTIVIDAD"></td>
                 <td><input type="number" value="${attendance['Apoyo transporte'] || '0'}" disabled ondblclick="enableEdit(this)" name="APOYO_TRANSPORTE"></td>
                 <td><input type="number" value="${attendance['Descuento prestamo inventario'] || '0'}" disabled ondblclick="enableEdit(this)" name="DESCUENTO_PRESTAMO_INVENTARIO"></td>
+                <td><input type="number" value="${attendance['Bono recomendacion'] || '0'}" disabled ondblclick="enableEdit(this)" name="BONO_RECOMENDACION"></td>
+                <td><input type="number" value="${attendance['Descuento efectivo'] || '0'}" disabled ondblclick="enableEdit(this)" name="DESCUENTO_EFECTIVO"></td>
                 <td><input type="text" value="${attendance.Notas || ''}" maxlength="200" disabled ondblclick="enableEdit(this)" name="NOTAS"></td>
                 <td>`;
 
@@ -506,6 +525,8 @@ function toggleEdit(button) {
         const APOYO_TRANSPORTE = row.querySelector('input[name="APOYO_TRANSPORTE"]').value || '0';
         const PRIMA_DOMINICAL = row.querySelector('select[name="Prima Dominical"]').value || '0';
         const DESCUENTO_PRESTAMO_INVENTARIO = row.querySelector('input[name="DESCUENTO_PRESTAMO_INVENTARIO"]').value || '0';
+        const BONO_RECOMENDACION = row.querySelector('input[name="BONO_RECOMENDACION"]').value || '0';
+        const DESCUENTO_EFECTIVO = row.querySelector('input[name="DESCUENTO_EFECTIVO"]').value || '0';
         const NOTAS = row.querySelector('input[name="NOTAS"]').value || '';
 
         const updatedData = {
@@ -521,6 +542,8 @@ function toggleEdit(button) {
             BONO_PRODUCTIVIDAD,
             APOYO_TRANSPORTE,
             DESCUENTO_PRESTAMO_INVENTARIO,
+            BONO_RECOMENDACION,
+            DESCUENTO_EFECTIVO,
             PRIMA_DOMINICAL,
             NOTAS
         };
@@ -706,6 +729,7 @@ function exportarAsistenciasCHC() {
     XLSX.writeFile(wb, 'asistencias_CHC.xlsx');
 }
 
+// Función ajustada para exportar asistencias Compaq
 function exportarAsistenciasCompaq() {
     const table = document.getElementById('attendance-table');
     let data = [];
@@ -735,6 +759,19 @@ function exportarAsistenciasCompaq() {
                 value = cell.innerText;
             }
 
+            // Verificar si la columna actual es una de las numéricas o "NOTAS"
+            const columnName = headers[j];
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                parseFloat(value) === 0
+            ) {
+                value = ''; // Dejar vacío si el valor es 0.00
+            }
+
+            if (columnName === "NOTAS" && value.trim().toLowerCase() === "sin notas") {
+                value = ''; // Dejar vacío si el valor es "sin notas"
+            }
+
             // Realizar la traducción de cualquier valor en la tabla (excepto encabezados)
             value = translateValue(value);
 
@@ -756,20 +793,34 @@ function exportarAsistenciasCompaq() {
 function translateValue(value) {
     let result = value;
 
-    // Traducción dinámica de "F" a "FINJ", considerando "F" o "nF"
+    // Traducción dinámica de "F" a "FINJ"
     result = result.replace(/\b(\d*(?:\.\d+)?)F\b/g, function(match, p1) {
         let number = p1 || '1'; // Si no hay número, asumimos '1'
         return number + 'FINJ';
     });
 
-    // Traducción dinámica de "TE" a "HE2", considerando "TE" o "nTE"
+    // Traducción dinámica de "TE" a "HE2"
     result = result.replace(/\b(\d*(?:\.\d+)?)TE\b/g, function(match, p1) {
         let number = p1 || '1'; // Si no hay número, asumimos '1'
         return number + 'HE2';
     });
 
+    let matchFH = result.match(/^(\d+(?:\.\d+)?)(FINJ|HE2)$/);
+    if (matchFH) {
+        let number = parseFloat(matchFH[1]);
+        if (number === 0) {
+            result = '';
+        }
+    }
+
+    // Si el resultado es "0DT", "0DFT", "0INC", "0VAC" o simplemente "0", también dejarlo vacío
+    if (/^0(DT|DFT|INC|VAC)$/.test(result) || result === '0') {
+        result = '';
+    }
+
     return result;
 }
+
 
 function exportarAsistenciasCompaqEYE() {
     const table = document.getElementById('attendance-table');
@@ -793,7 +844,7 @@ function exportarAsistenciasCompaqEYE() {
                 let cell = table.rows[i].cells[j];
                 let value;
 
-                // Si la celda contiene un <select>, obtener el valor seleccionado y traducir
+                // Si la celda contiene un <select>, obtener el valor seleccionado
                 if (cell.querySelector('select')) {
                     value = cell.querySelector('select').value;
                 } else if (cell.querySelector('input')) {
@@ -802,7 +853,24 @@ function exportarAsistenciasCompaqEYE() {
                     value = cell.innerText;
                 }
 
+                const columnName = headers[j];
+
+                // Limpiar campos numéricos con valor 0
+                if (
+                    ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                    parseFloat(value) === 0
+                ) {
+                    value = ''; // Dejar vacío si el valor es 0.00
+                }
+
+                // Limpiar campo NOTAS si es "sin notas"
+                if (columnName === "NOTAS" && value.trim().toLowerCase() === "sin notas") {
+                    value = ''; 
+                }
+
+                // Traducir el valor (F->FINJ, TE->HE2, y quitar ceros)
                 value = translateValue(value);
+
                 rowData.push(value);
             }
             data.push(rowData);
@@ -818,6 +886,7 @@ function exportarAsistenciasCompaqEYE() {
     XLSX.writeFile(wb, 'asistencias_compaq_EYE.xlsx');
 }
 
+
 function exportarAsistenciasCompaqCHC() {
     const table = document.getElementById('attendance-table');
     let data = [];
@@ -831,16 +900,16 @@ function exportarAsistenciasCompaqCHC() {
     }
     data.push(headers);
 
-    // Filtrar filas por departamentos que NO empiecen con "EYE" y agregar los datos a exportar
+    // Filtrar filas por departamentos que NO empiecen con "EYE"
     for (let i = 1; i < table.rows.length; i++) {
-        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
+        let departamento = table.rows[i].cells[2].innerText; // Columna "Departamento"
         if (!departamento.startsWith('EYE')) {
             let rowData = [];
-            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
+            for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
                 let cell = table.rows[i].cells[j];
                 let value;
 
-                // Si la celda contiene un <select>, obtener el valor seleccionado y traducir
+                // Obtener el valor de la celda (select/input/text)
                 if (cell.querySelector('select')) {
                     value = cell.querySelector('select').value;
                 } else if (cell.querySelector('input')) {
@@ -849,7 +918,22 @@ function exportarAsistenciasCompaqCHC() {
                     value = cell.innerText;
                 }
 
-                // Traducir el valor como en el reporte anterior
+                const columnName = headers[j];
+
+                // Limpiar campos numéricos con valor 0
+                if (
+                    ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                    parseFloat(value) === 0
+                ) {
+                    value = ''; // Dejar vacío si el valor es 0.00
+                }
+
+                // Limpiar campo NOTAS si es "sin notas"
+                if (columnName === "NOTAS" && value.trim().toLowerCase() === "sin notas") {
+                    value = ''; 
+                }
+
+                // Traducir el valor (F->FINJ, TE->HE2, eliminar 0FINJ, 0HE2, 0DT, etc.)
                 value = translateValue(value);
 
                 rowData.push(value);
@@ -867,6 +951,298 @@ function exportarAsistenciasCompaqCHC() {
     XLSX.writeFile(wb, 'incidencias_compaq_chc.xlsx');
 }
 
+function SoloIncidenciasCompaq() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Recorrer las filas de la tabla (exceptuando los encabezados)
+    for (let i = 1; i < table.rows.length; i++) {
+        let rowData = [];
+        let includeRow = false; // Bandera para incluir la fila en el reporte
+        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
+
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
+            let cell = table.rows[i].cells[j];
+            let value;
+
+            // Obtener el valor de la celda (select/input/text)
+            if (cell.querySelector('select')) {
+                value = cell.querySelector('select').value;
+            } else if (cell.querySelector('input')) {
+                value = cell.querySelector('input').value;
+            } else {
+                value = cell.innerText;
+            }
+
+            const columnName = headers[j];
+
+            // Guardar el valor de "Notas" para verificar más adelante
+            if (columnName === "NOTAS") {
+                cellNotesValue = value.trim().toLowerCase();
+            }
+
+            // Limpiar valores numéricos de "0"
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                parseFloat(value) === 0
+            ) {
+                value = ''; // Dejar vacío si el valor es 0
+            }
+
+            // Traducir el valor utilizando la función existente translateValue
+            value = translateValue(value);
+
+            // Verificar las reglas para incluir la fila
+            if (
+                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
+                value !== "1"
+            ) {
+                includeRow = true;
+            }
+
+            if (columnName === "PRIMA DOMINICAL" && value === "1") {
+                includeRow = true;
+            }
+
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                value !== ""
+            ) {
+                includeRow = true;
+            }
+
+            rowData.push(value);
+        }
+
+        // Incluir la fila si "Notas" es diferente de "sin notas"
+        if (cellNotesValue !== "sin notas") {
+            includeRow = true;
+        }
+
+        // Agregar la fila al reporte si cumple con las condiciones
+        if (includeRow) {
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias Compaq');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'solo_incidencias_compaq.xlsx');
+}
+
+
+function SoloIncidenciasCHC() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamentos que NO empiecen con "EYE" o "ELAB"
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
+        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB')) {
+            continue; // Saltar esta fila
+        }
+
+        let rowData = [];
+        let includeRow = false; // Bandera para incluir la fila en el reporte
+        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
+
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
+            let cell = table.rows[i].cells[j];
+            let value;
+
+            // Obtener el valor de la celda (select/input/text)
+            if (cell.querySelector('select')) {
+                value = cell.querySelector('select').value;
+            } else if (cell.querySelector('input')) {
+                value = cell.querySelector('input').value;
+            } else {
+                value = cell.innerText;
+            }
+
+            const columnName = headers[j];
+
+            // Guardar el valor de "Notas" para verificar más adelante
+            if (columnName === "NOTAS") {
+                cellNotesValue = value.trim().toLowerCase();
+            }
+
+            // Limpiar campos numéricos con valor 0
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                parseFloat(value) === 0
+            ) {
+                value = ''; // Dejar vacío si el valor es 0.00
+            }
+
+            // Traducir el valor utilizando la función existente translateValue
+            value = translateValue(value);
+
+            // Verificar las reglas para incluir la fila
+            if (
+                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
+                value !== "1"
+            ) {
+                includeRow = true;
+            }
+
+            if (columnName === "PRIMA DOMINICAL" && value === "1") {
+                includeRow = true;
+            }
+
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                value !== ""
+            ) {
+                includeRow = true;
+            }
+
+            rowData.push(value);
+        }
+
+        // Incluir la fila si "Notas" es diferente de "sin notas"
+        if (cellNotesValue !== "sin notas") {
+            includeRow = true;
+        }
+
+        // Agregar la fila al reporte si cumple con las condiciones
+        if (includeRow) {
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias CHC');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'solo_incidencias_chc.xlsx');
+}
+
+function SoloIncidenciasEYE() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+            headers.push(table.rows[0].cells[j].innerText);
+        }
+    }
+    data.push(headers);
+
+    // Filtrar filas por departamentos que empiecen con "EYE" o "ELAB"
+    for (let i = 1; i < table.rows.length; i++) {
+        let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
+        if (!departamento.startsWith('EYE') && !departamento.startsWith('ELAB')) {
+            continue; // Saltar esta fila
+        }
+
+        let rowData = [];
+        let includeRow = false; // Bandera para incluir la fila en el reporte
+        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
+
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
+            let cell = table.rows[i].cells[j];
+            let value;
+
+            // Obtener el valor de la celda (select/input/text)
+            if (cell.querySelector('select')) {
+                value = cell.querySelector('select').value;
+            } else if (cell.querySelector('input')) {
+                value = cell.querySelector('input').value;
+            } else {
+                value = cell.innerText;
+            }
+
+            const columnName = headers[j];
+
+            // Guardar el valor de "Notas" para verificar más adelante
+            if (columnName === "NOTAS") {
+                cellNotesValue = value.trim().toLowerCase();
+            }
+
+            // Limpiar campos numéricos con valor 0
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                parseFloat(value) === 0
+            ) {
+                value = ''; // Dejar vacío si el valor es 0.00
+            }
+
+            // Traducir el valor utilizando la función existente translateValue
+            value = translateValue(value);
+
+            // Verificar las reglas para incluir la fila
+            if (
+                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
+                value !== "1"
+            ) {
+                includeRow = true;
+            }
+
+            if (columnName === "PRIMA DOMINICAL" && value === "1") {
+                includeRow = true;
+            }
+
+            if (
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                value !== ""
+            ) {
+                includeRow = true;
+            }
+
+            rowData.push(value);
+        }
+
+        // Incluir la fila si "Notas" es diferente de "sin notas"
+        if (cellNotesValue !== "sin notas") {
+            includeRow = true;
+        }
+
+        // Agregar la fila al reporte si cumple con las condiciones
+        if (includeRow) {
+            data.push(rowData);
+        }
+    }
+
+    // Generar el archivo Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias EYE');
+
+    // Descargar el archivo Excel
+    XLSX.writeFile(wb, 'solo_incidencias_eye.xlsx');
+}
+
+
+
+
+
+
 // Función para traducir los valores de "TE" a "HE2" y "F" a "FINJ"
 function translateValue(value) {
     let result = value;
@@ -882,6 +1258,25 @@ function translateValue(value) {
         let number = p1 || '1'; // Si no hay número, asumimos '1'
         return number + 'HE2';
     });
+
+    let matchFH = result.match(/^(\d+(?:\.\d+)?)(FINJ|HE2)$/);
+    if (matchFH) {
+        let number = parseFloat(matchFH[1]);
+        if (number === 0) {
+            result = '';
+        }
+    }
+
+    // Si el resultado es "0DT", "0DFT", "0INC", "0VAC" o simplemente "0", también dejarlo vacío
+    // Patrones:
+    // ^0DT$   : Valor es exactamente "0DT"
+    // ^0DFT$  : Valor es exactamente "0DFT"
+    // ^0INC$  : Valor es exactamente "0INC"
+    // ^0VAC$  : Valor es exactamente "0VAC"
+    // ^0$     : Valor es exactamente "0"
+    if (/^0(DT|DFT|INC|VAC)$/.test(result) || result === '0') {
+        result = '';
+    }
 
     return result;
 }

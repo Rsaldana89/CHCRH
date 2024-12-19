@@ -447,12 +447,23 @@ th:nth-child(1), td:nth-child(1) {
 .attendance-table input[type="number"][name="COMISION"],
 .attendance-table input[type="number"][name="BONO_PRODUCTIVIDAD"],
 .attendance-table input[type="number"][name="APOYO_TRANSPORTE"],
-.attendance-table input[type="number"][name="DESCUENTO_PRESTAMO_INVENTARIO"] {
+.attendance-table input[type="number"][name="DESCUENTO_PRESTAMO_INVENTARIO"],
+.attendance-table input[type="number"][name="BONO_RECOMENDACION"],
+.attendance-table input[type="number"][name="DESCUENTO_EFECTIVO"] {
     width: 80px; /* Reducir el ancho para campos numéricos */
     text-align: center; /* Centrar el texto dentro de los campos */
     padding: 5px;
     box-sizing: border-box;
 }
+
+.attendance-table select {
+    font-size: 16px; /* Aumenta el tamaño de la letra */
+    height: 35px;    /* Incrementa la altura del select */
+    padding: 0 5px;  /* Un poco de relleno interno */
+    box-sizing: border-box; /* Asegura que el padding se cuente dentro del ancho/alto */
+}
+
+
 
 /* Ajustar el ancho del campo de "Notas" */
 .attendance-table input[type="text"][name="NOTAS"] {
@@ -497,23 +508,88 @@ th:nth-child(1), td:nth-child(1) {
     text-align: left;
 }
 
+#personal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#personal-table th,
+#personal-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
 #personal-table th {
     background-color: #f4f4f4;
 }
 
-/* Fijar la columna de acciones */
+#personal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#personal-table th,
+#personal-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+#personal-table th {
+    background-color: #f4f4f4;
+}
+
+/* Fijar la primera columna (ID) */
+#personal-table th:nth-child(1),
+#personal-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    background-color: #f4f4f4; /* Fondo fijo */
+    z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
+    min-width: 80px; /* Define un ancho mínimo consistente */
+    max-width: 80px; /* Evita que crezca */
+}
+
+/* Fijar la segunda columna (NOMBRE COMPLETO) */
+#personal-table th:nth-child(2),
+#personal-table td:nth-child(2) {
+    position: sticky;
+    left: 80px; /* Ancho acumulado exacto de la primera columna */
+    background-color: #f4f4f4; /* Fondo fijo */
+    z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
+    min-width: 200px; /* Define un ancho mínimo */
+    max-width: 300px; /* Permite crecer hasta cierto punto */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    overflow: hidden; /* Oculta el texto desbordado */
+    text-overflow: ellipsis; /* Muestra "..." si el texto es muy largo */
+}
+
+#personal-table td:nth-child(2):hover {
+    white-space: normal; /* Permite dividir el texto en varias líneas */
+    overflow: visible; /* Muestra el texto completo */
+    text-overflow: unset; /* Quita los puntos suspensivos */
+    z-index: 3; /* Asegura que esté sobre las demás celdas */
+    background-color: #3c3ce1; /* Azul del hover en otras celdas */
+    color: #f5f5f7; /* Texto blanco */
+}
+
+
+/* Fijar la última columna (Acciones) */
 #personal-table th:last-child,
 #personal-table td:last-child {
     position: sticky;
     right: 0;
-    background-color: #fff; /* Color de fondo fijo para la columna */
+    background-color: #fff; /* Fondo fijo */
     z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
 }
 
-/* Asegurar que el encabezado de la columna de acciones esté fijo */
+/* Asegurar que el encabezado de la última columna esté fijo */
 #personal-table th:last-child {
     z-index: 3; /* Asegurarse de que el encabezado esté sobre el resto de la tabla */
 }
+
+
 
 /* Asegurarse de que la tabla y su contenedor permitan scroll horizontal */
 .table-container {
@@ -801,4 +877,27 @@ thead th:hover::after {
     .selectors select, .selectors input[type="text"], .selectors button {
         width: 100%; /* Los elementos ocupan todo el ancho disponible */
     }
+}
+
+
+    .form-group label[for="birth_date"], 
+    .form-group #birth_date {
+        display: none !important;
+    }
+
+    /* Animación de desvanecimiento */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Aplica la animación a la tabla cada vez que cambie */
+.table-container {
+    animation: fadeIn 0.5s ease-out;
 }
