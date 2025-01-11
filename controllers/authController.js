@@ -28,7 +28,7 @@ const authController = {
       }
 
       // Crear y enviar el token JWT, incluyendo full_name en el payload
-      const token = jwt.sign({ id: user.id, username: user.username, role: user.role, full_name: user.full_name }, 'secret_key', { expiresIn: '1h' });
+      const token = jwt.sign({ id: user.id, username: user.username, role: user.role, full_name: user.full_name }, 'secret_key', { expiresIn: '2h' });
       res.json({ message: 'Login exitoso', token });
     });
   }

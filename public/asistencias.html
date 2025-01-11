@@ -128,7 +128,7 @@
         </div>
 
         <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
-            <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
+            <p>&copy; 2024-2025 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
         </footer>
         
 
@@ -659,7 +659,7 @@ function exportarAsistenciasEYE() {
     // Filtrar filas por departamento "EYE" y agregar los datos a exportar
     for (let i = 1; i < table.rows.length; i++) {
         let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
-        if (departamento.startsWith('EYE')) {
+        if (departamento.startsWith('EYE')|| departamento.startsWith('ELAB')) {
             let rowData = [];
             for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
                 let cell = table.rows[i].cells[j];
@@ -838,7 +838,7 @@ function exportarAsistenciasCompaqEYE() {
     // Filtrar filas por departamento que comience con "EYE"
     for (let i = 1; i < table.rows.length; i++) {
         let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
-        if (departamento.startsWith('EYE')) {
+        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB'))  {
             let rowData = [];
             for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
                 let cell = table.rows[i].cells[j];
@@ -903,7 +903,7 @@ function exportarAsistenciasCompaqCHC() {
     // Filtrar filas por departamentos que NO empiecen con "EYE"
     for (let i = 1; i < table.rows.length; i++) {
         let departamento = table.rows[i].cells[2].innerText; // Columna "Departamento"
-        if (!departamento.startsWith('EYE')) {
+        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB')) {
             let rowData = [];
             for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
                 let cell = table.rows[i].cells[j];

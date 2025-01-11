@@ -47,6 +47,12 @@
                 <select id="department-filter" onchange="searchEmployee()">
                     <option value="">Todos los departamentos</option>
                 </select>
+
+                <!-- Combobox para seleccionar puesto -->
+                <select id="position-filter" onchange="searchEmployee()">
+                    <option value="">Todos los puestos</option> <!-- Opción por defecto -->
+                </select>
+                
             </div>
             
             <div class="table-container">
@@ -177,7 +183,7 @@
     </div>
 
     <footer style="text-align: center; margin-top: 50px; font-size: 14px; color: gray;">
-        <p>&copy; 2024 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
+        <p>&copy; 2024-2025 Cremería Hermanos Coronel. Todos los derechos reservados.</p>
     </footer>
     
 
@@ -187,7 +193,45 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 
+
     <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        window.location.href = '/login.html';
+        return;
+    }
+
+    // Realiza una solicitud para verificar si el token sigue siendo válido
+    fetch('/dashboard', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        if (response.status === 401) { // Si el token ha expirado
+            throw new Error('Sesión expirada');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Configuración de la sesión (como mostrar el usuario)
+        document.getElementById('username').textContent = data.username;
+        document.getElementById('full-name').textContent = data.full_name;
+        document.getElementById('user-role').textContent = data.role;
+    })
+    .catch(error => {
+        console.error('Error de autenticación:', error);
+        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+    });
+});
+
         let personalData = []; // Variable global para almacenar los datos del personal
         let currentSearchQuery = '';
         let currentDepartmentFilter = '';
@@ -196,6 +240,38 @@
         
         let ALL_DEPARTMENTS = [];
 
+        function loadPositions() {
+    fetch('puestos.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar los puestos');
+            }
+            return response.json();
+        })
+        .then(data => {
+            populatePositionFilter(data.positions);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function populatePositionFilter(positions) {
+    const positionFilter = document.getElementById('position-filter');
+    positionFilter.innerHTML = ''; // Limpiar opciones existentes
+
+    // Agregar la opción "Todos los puestos" al inicio
+    const allOption = document.createElement('option');
+    allOption.value = '';
+    allOption.textContent = 'Todos los puestos';
+    positionFilter.appendChild(allOption);
+
+    // Agregar las opciones de puestos desde el JSON
+    positions.forEach(pos => {
+        const option = document.createElement('option');
+        option.value = pos;
+        option.textContent = pos;
+        positionFilter.appendChild(option);
+    });
+}
 // Función para cargar los departamentos desde el archivo JSON
 function loadDepartments() {
     fetch('departamentos.json')
@@ -236,7 +312,7 @@ function populateDepartmentSelect(selectId) {
 // Llamar a loadDepartments cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function () {
     loadDepartments(); // Cargar los departamentos desde el JSON
-
+    loadPositions();
     // Resto del código de inicialización
     const token = localStorage.getItem('token');
     if (!token) {
@@ -402,13 +478,15 @@ function showPersonalManagement(allowedDepartments) {
 function searchEmployee() {
     const searchQuery = document.getElementById('search-input').value.toLowerCase();
     const selectedDepartment = document.getElementById('department-filter').value;
+    const selectedPosition = document.getElementById('position-filter').value; // Nuevo filtro de puesto
 
     const filteredData = personalData.filter(emp => {
         const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || 
                                    emp.employee_number.toString().includes(searchQuery);
         const matchesDepartment = selectedDepartment === '' || emp.department_name === selectedDepartment;
+        const matchesPosition = selectedPosition === '' || emp.puesto === selectedPosition; // Validación de puesto
 
-        return matchesSearchQuery && matchesDepartment;
+        return matchesSearchQuery && matchesDepartment && matchesPosition; // Incluir matchesPosition
     });
 
     renderPersonalTable(filteredData);
@@ -466,6 +544,12 @@ function calcularEdadDesdeFechaNacimiento(birthDate) {
 }
 
 function renderPersonalTable(data = personalData) {
+    data.sort((a, b) => {
+        if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+        if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+        return a.employee_number - b.employee_number; // Ordenar por ID
+    });
+
     const tbody = document.querySelector('#personal-table tbody');
     tbody.innerHTML = '';
 

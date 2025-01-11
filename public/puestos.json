@@ -51,9 +51,9 @@
         "SUPERVISOR DE PRODUCCIÓN",
         "SUPERVISOR DE SUCURSAL",
         "SUPERVISOR MATERIA PRIMA",
-        "TECNICO EN SISTEMAS",
         "TÉCNICO DE MANTENIMIENTO",
-        "TÉCNICO DE SISTEMAS"
+        "TÉCNICO DE SISTEMAS",
+        "OTRO"
     ]
   }
   
