@@ -244,7 +244,7 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
     }
     
     const query = `
-        INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, birth_date)
+        INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
