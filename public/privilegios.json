@@ -70,6 +70,24 @@
           "LOS HEROES", "MILENIO", "MIRANDA", "PEDRO ESCOBEDO", "PEDRO ESCOBEDO II",
           "REAL SOLARE", "RINCONES DEL MARQUES","SAN JUAN DEL RIO"
         ]
+      },
+      "eyemanager": {
+        "departments": ["EYE ADMINISTRACION"]
+      },
+      "eyetortillas": {
+        "departments": ["EYE TORTILLAS"]
+      },
+      "eyequeso": {
+        "departments": ["EYE QUESOS FRESCOS"]
+      },
+      "eyeturno1": {
+        "departments": ["EYE CONVERSION 1ER TURNO"]
+      },
+      "eyeturno2": {
+        "departments": ["EYE CONVERSION 2DO TURNO"]
+      },
+      "eyecontrol": {
+        "departments": ["EYE CONTROL PRODUCCION"]
       }
     }
   }

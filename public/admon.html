@@ -10,7 +10,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.24 Alpha</span> <!-- Agregamos la versión aquí -->
+            <span class="version-info">Versión 1.25 Alpha</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
@@ -147,7 +147,7 @@
 
                 <div class="form-group">
                     <label for="puesto">Puesto:</label>
-                    <input type="text" id="puesto" name="puesto">
+                    <select id="puesto" name="puesto" required></select>
                 </div>
 
                 <div class="form-group">
@@ -249,29 +249,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(data => {
-            populatePositionFilter(data.positions);
+            // Llenar los selectores con los datos del JSON
+            populatePositionSelect('puesto', data.positions); // Selector del modal
+            populatePositionSelect('position-filter', data.positions); // Filtro de puestos
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error al cargar los puestos:', error));
 }
 
-function populatePositionFilter(positions) {
-    const positionFilter = document.getElementById('position-filter');
-    positionFilter.innerHTML = ''; // Limpiar opciones existentes
+function populatePositionSelect(selectId, positions) {
+    const selectElement = document.getElementById(selectId);
+    selectElement.innerHTML = ''; // Limpiar las opciones existentes
 
-    // Agregar la opción "Todos los puestos" al inicio
-    const allOption = document.createElement('option');
-    allOption.value = '';
-    allOption.textContent = 'Todos los puestos';
-    positionFilter.appendChild(allOption);
+    // Agregar la opción "Todos los puestos" para el filtro
+    if (selectId === 'position-filter') {
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'Todos los puestos';
+        selectElement.appendChild(allOption);
+    }
 
-    // Agregar las opciones de puestos desde el JSON
+    // Llenar las opciones desde los datos del JSON
     positions.forEach(pos => {
         const option = document.createElement('option');
         option.value = pos;
         option.textContent = pos;
-        positionFilter.appendChild(option);
+        selectElement.appendChild(option);
     });
 }
+
+
 // Función para cargar los departamentos desde el archivo JSON
 function loadDepartments() {
     fetch('departamentos.json')
@@ -453,7 +459,12 @@ function showPersonalManagement(allowedDepartments) {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al obtener los datos del personal');
+        }
+        return response.json();
+    })
     .then(data => {
         // Verificar si el usuario tiene acceso a "Todos los departamentos"
         if (allowedDepartments.includes("Todos")) {
@@ -462,35 +473,52 @@ function showPersonalManagement(allowedDepartments) {
             personalData = data.filter(emp => allowedDepartments.includes(emp.department_name));
         }
 
+        // Ordenar los datos por ID y colocar el departamento "Baja" al final
+        personalData.sort((a, b) => {
+            if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+            if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+            return a.employee_number - b.employee_number; // Ordenar por ID
+        });
 
-        // Ordenar por ID (employee_number) de forma ascendente
-        personalData.sort((a, b) => a.employee_number - b.employee_number);
-
-        
+        // Renderizar la tabla con los datos ordenados
         renderPersonalTable(personalData);
         document.getElementById('personal-management-module').style.display = 'block';
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error al cargar los datos del personal:', error);
+        alert('Ocurrió un error al cargar los datos del personal. Intenta nuevamente.');
+    });
 }
+
 
 
 
 function searchEmployee() {
-    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+    const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
     const selectedDepartment = document.getElementById('department-filter').value;
     const selectedPosition = document.getElementById('position-filter').value; // Nuevo filtro de puesto
 
-    const filteredData = personalData.filter(emp => {
-        const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || 
-                                   emp.employee_number.toString().includes(searchQuery);
-        const matchesDepartment = selectedDepartment === '' || emp.department_name === selectedDepartment;
-        const matchesPosition = selectedPosition === '' || emp.puesto === selectedPosition; // Validación de puesto
+    // Función para normalizar el número de empleado (5 dígitos con ceros al inicio)
+    const normalizeEmployeeNumber = (number) => number.toString().padStart(5, '0');
 
-        return matchesSearchQuery && matchesDepartment && matchesPosition; // Incluir matchesPosition
+    const filteredData = personalData.filter(emp => {
+        // Normalizar el número de empleado del registro
+        const employeeNumberNormalized = normalizeEmployeeNumber(emp.employee_number);
+
+        // Comparar nombre o números normalizados
+        const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || 
+                                   employeeNumberNormalized.includes(normalizeEmployeeNumber(searchQuery)) ||
+                                   emp.employee_number.toString().includes(searchQuery);
+
+        const matchesDepartment = selectedDepartment === '' || emp.department_name === selectedDepartment;
+        const matchesPosition = selectedPosition === '' || emp.puesto === selectedPosition;
+
+        return matchesSearchQuery && matchesDepartment && matchesPosition;
     });
 
     renderPersonalTable(filteredData);
 }
+
 
 
 function extractBirthDateFromRFC(rfc) {
@@ -544,12 +572,6 @@ function calcularEdadDesdeFechaNacimiento(birthDate) {
 }
 
 function renderPersonalTable(data = personalData) {
-    data.sort((a, b) => {
-        if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
-        if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
-        return a.employee_number - b.employee_number; // Ordenar por ID
-    });
-
     const tbody = document.querySelector('#personal-table tbody');
     tbody.innerHTML = '';
 
@@ -563,6 +585,7 @@ function renderPersonalTable(data = personalData) {
 
         const antiguedad = calcularAntiguedad(emp.start_date, emp.fecha_reingreso); 
         const isValidDepartment = ALL_DEPARTMENTS.includes(emp.department_name);
+        const isBaja = emp.department_name.toLowerCase() === 'baja'; // Verificar si es "baja"
 
         let row = `
             <tr>
@@ -572,7 +595,7 @@ function renderPersonalTable(data = personalData) {
                 <td>${emp.curp || ''}</td>
                 <td>${emp.nss || ''}</td>
                 <td>${emp.puesto || ''}</td>
-                <td class="${isValidDepartment ? '' : 'invalid-department'}">${emp.department_name}</td>
+                <td class="${isBaja ? 'department-baja' : isValidDepartment ? '' : 'invalid-department'}">${emp.department_name}</td>
                 <td>${formatDate(emp.start_date)}</td>
                 <td>${emp.fecha_baja ? formatDate(emp.fecha_baja) : ''}</td>
                 <td>${emp.fecha_reingreso ? formatDate(emp.fecha_reingreso) : ''}</td>
@@ -593,19 +616,30 @@ function renderPersonalTable(data = personalData) {
 }
 
 
+
 function sortPersonal(criteria) {
     const sortOrder = localStorage.getItem('currentSortOrder') === 'asc' ? 'desc' : 'asc';
     localStorage.setItem('currentSortCriteria', criteria);
     localStorage.setItem('currentSortOrder', sortOrder);
 
     personalData.sort((a, b) => {
-        if (a[criteria] < b[criteria]) return sortOrder === 'asc' ? -1 : 1;
-        if (a[criteria] > b[criteria]) return sortOrder === 'asc' ? 1 : -1;
+        if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+        if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+
+        const valueA = a[criteria] || ''; // Tratar valores nulos como cadenas vacías
+        const valueB = b[criteria] || '';
+
+        if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+        if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
         return 0;
     });
 
-    renderPersonalTable();
+    renderPersonalTable(personalData);
 }
+
+
+
+
 
 
         function formatDate(dateString) {
@@ -734,61 +768,66 @@ function closeEmployeeModal() {
 
 }
 
-
-        function confirmBaja(employee_number) {
-            const confirmBaja = confirm("¿Realmente quieres dar de baja a este empleado?");
-            if (confirmBaja) {
-                const currentDate = new Date().toISOString().split('T')[0]; // Obtener la fecha actual
-                updateEmployeeToBaja(employee_number, currentDate);
-            }
+function confirmBaja(employee_number) {
+    // Confirmar si el usuario desea dar de baja al empleado
+    const confirmBaja = confirm("¿Realmente quieres dar de baja a este empleado?");
+    if (confirmBaja) {
+        // Solicitar la fecha de baja al usuario
+        const fechaBaja = prompt("Ingresa la fecha de baja (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
+        
+        // Validar que la fecha no esté vacía y sea válida
+        if (fechaBaja && !isNaN(new Date(fechaBaja).getTime())) {
+            updateEmployeeToBaja(employee_number, fechaBaja);
+        } else {
+            alert("Fecha inválida. La acción de baja ha sido cancelada.");
         }
+    }
+}
 
-        function updateEmployeeToBaja(employee_number, fecha_baja) {
+
+
+
+function updateEmployeeToBaja(employee_number, fecha_baja) {
+    // Validar la fecha ingresada antes de enviar la solicitud
+    if (!fecha_baja || isNaN(new Date(fecha_baja).getTime())) {
+        alert("La fecha de baja es inválida. Por favor, ingresa una fecha válida.");
+        return;
+    }
+
     fetch(`/admin/personal/baja/${employee_number}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ department_name: 'Baja', fecha_baja: fecha_baja }) // Enviar la fecha de baja actual
+        body: JSON.stringify({ 
+            department_name: 'Baja', 
+            fecha_baja: fecha_baja // Asegúrate de enviar la fecha válida ingresada
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        // Verificar el estado de la respuesta
+        if (!response.ok) {
+            throw new Error('Error al actualizar el empleado. Verifica los datos.');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.error) {
             console.error('Error:', data.error);
             alert(`Error al dar de baja al empleado: ${data.error}`);
         } else {
-            // Actualizar la tabla como al inicio
-            fetch('/admin/personal', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-            .then(response => response.json())
-            .then(employees => {
-                // Ordenar empleados: activos primero, luego los de baja
-                employees.sort((a, b) => {
-                    if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
-                    if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
-                    return a.employee_number - b.employee_number; // Ordenar por ID
-                });
-
-                // Actualizar los datos globales y renderizar la tabla
-                personalData = employees;
-                renderPersonalTable();
-
-                // Mostrar notificación de éxito después de actualizar
-                alert('Empleado dado de baja correctamente');
-            })
-            .catch(error => console.error('Error al recargar los empleados:', error));
+            // Refrescar los datos de la tabla después de la actualización
+            fetchUpdatedPersonalData(); // Función que recarga la tabla
+            alert('Empleado dado de baja correctamente.');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Hubo un error al intentar dar de baja al empleado');
+        alert('Hubo un error al intentar dar de baja al empleado. Por favor, intenta nuevamente.');
     });
 }
+
 
 
 
@@ -1252,7 +1291,12 @@ function fetchUpdatedPersonalData() {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al obtener los datos del personal');
+        }
+        return response.json();
+    })
     .then(data => {
         personalData = data;
 
@@ -1264,29 +1308,34 @@ function fetchUpdatedPersonalData() {
             return matchesSearchQuery && matchesDepartment;
         });
 
-        // Aplicar ordenación
-        if (currentSortCriteria) {
-            filteredData.sort((a, b) => {
-                if (a[currentSortCriteria] < b[currentSortCriteria]) return currentSortOrder === 'asc' ? -1 : 1;
-                if (a[currentSortCriteria] > b[currentSortCriteria]) return currentSortOrder === 'asc' ? 1 : -1;
+        // Ordenar datos: "Baja" al final, luego por criterio actual o por ID
+        filteredData.sort((a, b) => {
+            if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
+            if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
+
+            if (currentSortCriteria) {
+                const valueA = a[currentSortCriteria] || ''; // Tratar valores nulos como cadenas vacías
+                const valueB = b[currentSortCriteria] || '';
+                if (valueA < valueB) return currentSortOrder === 'asc' ? -1 : 1;
+                if (valueA > valueB) return currentSortOrder === 'asc' ? 1 : -1;
                 return 0;
-            });
-        } else {
-            filteredData.sort((a, b) => a.employee_number - b.employee_number);
-        }
+            } else {
+                return a.employee_number - b.employee_number; // Ordenar por ID como predeterminado
+            }
+        });
 
+        // Renderizar la tabla con los datos filtrados y ordenados
         renderPersonalTable(filteredData);
-
-        // Ordenar por ID (employee_number) de forma ascendente
-        personalData.sort((a, b) => a.employee_number - b.employee_number);
-
-
 
         // Restaurar el desplazamiento de la tabla
         document.querySelector('.table-container').scrollLeft = scrollPosition;
     })
-    .catch(error => console.error('Error al actualizar la tabla:', error));
+    .catch(error => {
+        console.error('Error al actualizar la tabla:', error);
+        alert('Ocurrió un error al actualizar los datos del personal.');
+    });
 }
+
 
 
 document.addEventListener('DOMContentLoaded', () => {

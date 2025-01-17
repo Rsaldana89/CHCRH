@@ -402,21 +402,29 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
     });
 });
 
-// Modificación para actualizar la fecha de baja automáticamente
+// Modificación para actualizar la fecha de baja con fecha proporcionada o actual
 app.put('/admin/personal/baja/:employee_number', authenticateToken, (req, res) => {
     const { employee_number } = req.params;
+    const { fecha_baja } = req.body;
 
-    // Obtener la fecha actual para la baja
-    const currentDate = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    // Determinar la fecha de baja: usar la proporcionada o la fecha actual
+    const finalFechaBaja = fecha_baja || new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+    // Validar que la fecha de baja sea válida
+    if (isNaN(new Date(finalFechaBaja).getTime())) {
+        return res.status(400).json({ error: 'La fecha de baja proporcionada no es válida.' });
+    }
 
     const query = 'UPDATE personal SET department_name = "Baja", fecha_baja = ? WHERE employee_number = ?';
-    db.query(query, [currentDate, employee_number], (err) => {
+    db.query(query, [finalFechaBaja, employee_number], (err) => {
         if (err) {
-            return res.status(500).json({ error: 'Error al dar de baja al empleado' });
+            console.error('Error al dar de baja al empleado:', err);
+            return res.status(500).json({ error: 'Error al dar de baja al empleado.' });
         }
-        res.json({ message: 'Empleado dado de baja correctamente', fecha_baja: currentDate });
+        res.json({ message: 'Empleado dado de baja correctamente', fecha_baja: finalFechaBaja });
     });
 });
+
 
 app.get('/admin/attendances', authenticateToken, (req, res) => {
     const { week, year } = req.query;

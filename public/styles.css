@@ -901,3 +901,65 @@ thead th:hover::after {
 .table-container {
     animation: fadeIn 0.5s ease-out;
 }
+
+.table-container {
+    max-height: 800px; /* Ajusta la altura según tus necesidades */
+    overflow-y: auto; /* Habilita el desplazamiento vertical */
+    overflow-x: auto; /* Habilita el desplazamiento horizontal si es necesario */
+}
+
+
+
+/* Encabezados de la tabla */
+#attendance-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* Fondo blanco para el encabezado */
+    z-index: 3; /* Asegúrate de que sea más alto que las columnas fijas */
+    border-bottom: 2px solid #ddd;
+}
+
+
+/* Encabezados fijos */
+.table-container table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* Fondo blanco para el encabezado */
+    z-index: 3; /* Más alto que las columnas fijas */
+    border-bottom: 2px solid #ddd;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1); /* Sombra ligera para destacar */
+}
+
+/* Encabezados fijos para la tabla de administración de personal */
+#personal-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* Fondo blanco para el encabezado */
+    z-index: 3; /* Encabezados siempre sobre las columnas fijas */
+    border-bottom: 2px solid #ddd;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Primera y segunda columna fija */
+#personal-table th:nth-child(1),
+#personal-table td:nth-child(1),
+#personal-table th:nth-child(2),
+#personal-table td:nth-child(2) {
+    position: sticky;
+    left: 0;
+    background-color: #f5f5f5; /* Fondo claro para columnas fijas */
+    z-index: 2; /* Menor que los encabezados */
+    border-right: 1px solid #ddd; /* Separador visual */
+}
+
+/* Resolver superposición en los encabezados de las columnas fijas */
+#personal-table thead th:nth-child(1),
+#personal-table thead th:nth-child(2) {
+    z-index: 4; /* Encabezados de columnas fijas sobre las columnas */
+}
+
+.department-baja {
+    color: red;
+    font-weight: bold;
+}
+
