@@ -35,6 +35,9 @@
       "jefecedis": {
         "departments": ["CEDIS"]
       },
+      "manageratn": {
+        "departments": ["ATENCION A NEGOCIOS"]
+      },
       "userSI": {
         "departments": ["Todos"]
       },
