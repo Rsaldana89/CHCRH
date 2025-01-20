@@ -9,6 +9,9 @@
       },
       "managerrh": {
         "departments": ["Todos"]
+      },
+      "vacacionesrh": {
+        "departments": ["Todos"]
       }
     },
     "user": {
