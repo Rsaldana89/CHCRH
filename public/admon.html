@@ -10,7 +10,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.25 Alpha</span> <!-- Agregamos la versión aquí -->
+            <span class="version-info">Versión 1.28 Alpha</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
@@ -110,6 +110,25 @@
     </h3>
     <button id="backup-db-btn" onclick="backupDatabase()">Respaldar Base de Datos</button>
 </div>
+
+<div id="bulk-add-container">
+    <h3>Agregar Empleados Masivo</h3>
+    <textarea id="bulk-add-textarea" rows="10" placeholder="Pega los datos de Excel aquí, incluyendo la fila de títulos"></textarea>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="bulk-preview-btn" onclick="previewBulkData()">Vista Previa</button>
+        <button id="bulk-send-btn" onclick="sendBulkData()" style="display: none;">Enviar Datos</button>
+    </div>
+    <div id="bulk-add-preview" style="margin-top: 20px; display: none; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+        <h4>Vista Previa</h4>
+        <pre id="preview-content"></pre>
+    </div>
+    <div id="bulk-add-notification" style="margin-top: 20px; display: none;"></div>
+</div>
+
+
+
+
+
 
 
             
@@ -888,26 +907,34 @@ function updateEmployeeToBaja(employee_number, fecha_baja) {
 
                 localStorage.setItem('role', data.role);
                 
-                if (data.role === 'admin') {
-                    document.getElementById('admin-module').style.display = 'inline';
-                    document.getElementById('add-employee-btn').style.display = 'inline'; // Mostrar botón de agregar empleado
-                   
-                    // Mostrar botones de editar y baja
-                    const editButtons = document.querySelectorAll('.edit-btn');
-                    const bajaButtons = document.querySelectorAll('.baja-btn');
-                   
-                    editButtons.forEach(button => button.style.display = 'inline');
-                    bajaButtons.forEach(button => button.style.display = 'inline');
-                } else {
-                    document.getElementById('add-employee-btn').style.display = 'none'; // Ocultar botón de agregar empleado
-                    
-                    // Ocultar botones de editar y baja
-                    const editButtons = document.querySelectorAll('.edit-btn');
-                    const bajaButtons = document.querySelectorAll('.baja-btn');
-                    
-                    editButtons.forEach(button => button.style.display = 'none');
-                    bajaButtons.forEach(button => button.style.display = 'none');
-                }
+                // Mostrar elementos solo para el rol admin
+            if (data.role === 'admin') {
+                // Mostrar botón de agregar empleado
+                document.getElementById('add-employee-btn').style.display = 'inline-block';
+
+                // Mostrar los botones de carga masiva
+                document.getElementById('bulk-add-container').style.display = 'block';
+
+                // Mostrar botones de editar y baja
+                const editButtons = document.querySelectorAll('.edit-btn');
+                const bajaButtons = document.querySelectorAll('.baja-btn');
+
+                editButtons.forEach(button => button.style.display = 'inline');
+                bajaButtons.forEach(button => button.style.display = 'inline');
+            } else {
+                // Ocultar botón de agregar empleado
+                document.getElementById('add-employee-btn').style.display = 'none';
+
+                // Ocultar los botones de carga masiva
+                document.getElementById('bulk-add-container').style.display = 'none';
+
+                // Ocultar botones de editar y baja
+                const editButtons = document.querySelectorAll('.edit-btn');
+                const bajaButtons = document.querySelectorAll('.baja-btn');
+
+                editButtons.forEach(button => button.style.display = 'none');
+                bajaButtons.forEach(button => button.style.display = 'none');
+            }
             })
             .catch(error => console.error('Error:', error));
         }
@@ -1370,6 +1397,155 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function previewBulkData() {
+    const textarea = document.getElementById('bulk-add-textarea');
+    const previewDiv = document.getElementById('bulk-add-preview');
+    const previewContent = document.getElementById('preview-content');
+    const sendButton = document.getElementById('bulk-send-btn'); // Botón de enviar datos
+
+    const data = textarea.value.trim();
+    if (!data) {
+        showNotification('Por favor, pega los datos antes de generar la vista previa.', 'error');
+        return;
+    }
+
+    // Convertir los datos en filas y columnas para mostrar de manera legible
+    const rows = data.split('\n').map(row => 
+        row.split('\t').map(cell => 
+            cell.trim().toUpperCase().replace(/-/g, '') // Convertir a mayúsculas y eliminar guiones medios
+        )
+    );
+
+    // Crear una vista previa en formato legible
+    let previewHTML = '<table border="1" style="border-collapse: collapse; width: 100%;">';
+    rows.forEach((row, index) => {
+        previewHTML += `<tr style="${index === 0 ? 'font-weight: bold; background-color: #f4f4f4;' : ''}">`;
+        row.forEach(cell => {
+            previewHTML += `<td style="padding: 5px;">${cell}</td>`;
+        });
+        previewHTML += '</tr>';
+    });
+    previewHTML += '</table>';
+
+    previewContent.innerHTML = previewHTML;
+    previewDiv.style.display = 'block';
+
+    // Mostrar el botón "Enviar Datos"
+    sendButton.style.display = 'block';
+
+    // Mostrar advertencia en un cuadro de alerta
+    alert(
+        "Asegúrate de que los datos estén en orden y en el siguiente formato:\n" +
+        "Departamento, Código, Nombre, RFC, CURP, Puesto, Alta, Baja, Reingreso, NSS\n\n" +
+        "El envío masivo es un procedimiento delicado. Verifica que los datos sean correctos antes de continuar."
+    );
+}
+
+// Ocultar el botón "Enviar Datos" al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    const sendButton = document.getElementById('bulk-send-btn'); // Botón de enviar datos
+    sendButton.style.display = 'none'; // Ocultar el botón al cargar
+});
+
+
+
+function sendBulkData() {
+    const bulkData = document.getElementById('bulk-add-textarea').value;
+
+    // Procesar las líneas de texto
+    const rows = bulkData.trim().split('\n');
+    
+    // Ignorar la primera fila (encabezados) y procesar los datos
+    const employees = rows.slice(1).map(row => {
+        const columns = row.split('\t'); // Separar columnas por tabuladores (\t)
+
+        return {
+            department_name: normalizeString(columns[0]?.trim() || ''),
+            employee_number: parseInt(columns[1]?.trim(), 10) || null,
+            full_name: normalizeString(columns[2]?.trim() || ''),
+            rfc: truncateString(normalizeString(columns[3]?.trim() || null), 13),
+            curp: truncateString(normalizeString(columns[4]?.trim() || null), 18),
+            puesto: normalizeString(columns[5]?.trim() || null),
+            start_date: normalizeDate(columns[6]?.trim() || ''),
+            fecha_baja: normalizeDate(columns[7]?.trim() || null),
+            fecha_reingreso: normalizeDate(columns[8]?.trim() || null),
+            nss: normalizeString(columns[9]?.trim() || null)
+        };
+    });
+
+    // Validar que los empleados tengan los campos mínimos requeridos
+    const invalidEmployees = employees.filter(emp =>
+        !emp.employee_number || !emp.full_name || !emp.department_name || !emp.start_date
+    );
+
+    if (invalidEmployees.length > 0) {
+        alert('Algunos empleados tienen datos incompletos. Revisa los registros.');
+        console.error('Empleados inválidos:', invalidEmployees);
+        return;
+    }
+
+    // Enviar los datos al servidor
+    fetch('/admin/personal/bulk', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(employees)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al enviar los datos al servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Respuesta del servidor:', data);
+            alert('Los datos se enviaron correctamente.');
+        })
+        .catch(error => {
+            console.error('Error al enviar datos:', error);
+            alert('Hubo un error al enviar los datos. Verifica los registros.');
+        });
+}
+
+// Función para normalizar cadenas: eliminar guiones y convertir a mayúsculas
+function normalizeString(str) {
+    if (!str) return str;
+    return str.replace(/-/g, '').toUpperCase();
+}
+
+// Función para truncar cadenas a un máximo de longitud
+function truncateString(str, maxLength) {
+    if (!str) return str;
+    return str.length > maxLength ? str.substring(0, maxLength) : str;
+}
+
+// Función para convertir fechas al formato yyyy-mm-dd
+function normalizeDate(dateStr) {
+    if (!dateStr) return null;
+    const [day, month, year] = dateStr.split('/');
+    if (!day || !month || !year) return null;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+
+
+function showNotification(message, type) {
+    const notification = document.getElementById('bulk-add-notification');
+    notification.textContent = message;
+    notification.style.display = 'block';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '4px';
+    notification.style.color = type === 'success' ? '#3c763d' : '#a94442';
+    notification.style.backgroundColor = type === 'success' ? '#dff0d8' : '#f2dede';
+    notification.style.border = type === 'success' ? '1px solid #d6e9c6' : '1px solid #ebccd1';
+
+    // Ocultar después de 5 segundos
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 5000);
+}
 
 
 

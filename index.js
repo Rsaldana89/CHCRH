@@ -283,6 +283,102 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
 
 });
 
+app.post('/admin/personal/bulk', authenticateToken, (req, res) => {
+    const employees = req.body; // Se espera un array de empleados
+
+    if (!employees || !Array.isArray(employees) || employees.length === 0) {
+        return res.status(400).json({ error: 'No se enviaron datos o el formato no es válido.' });
+    }
+
+    // Validar que cada empleado tenga los campos requeridos
+    for (const employee of employees) {
+        if (!employee.employee_number || !employee.full_name || !employee.department_name || !employee.start_date) {
+            return res.status(400).json({
+                error: `El empleado ${employee.employee_number || '[sin ID]'} tiene datos incompletos.`,
+            });
+        }
+    }
+
+    // Construir los valores para la inserción masiva
+    const values = employees.map((emp) => [
+        emp.employee_number,
+        emp.full_name,
+        emp.rfc || null,
+        emp.curp || null,
+        emp.nss || null,
+        emp.puesto || null,
+        emp.department_name,
+        emp.start_date,
+        emp.fecha_baja || null,
+        emp.fecha_reingreso || null,
+    ]);
+
+    const query = `
+        INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso)
+        VALUES ?
+    `;
+
+    db.query(query, [values], (err, result) => {
+        if (err) {
+            console.error('Error al agregar empleados:', err);
+
+            // Detectar duplicados
+            if (err.code === 'ER_DUP_ENTRY') {
+                const match = err.sqlMessage.match(/Duplicate entry '(\d+)' for key/);
+                const duplicateID = match ? match[1] : 'desconocido';
+                return res.status(409).json({
+                    error: `El empleado con ID ${duplicateID} ya existe en la base de datos.`,
+                });
+            }
+
+            return res.status(500).json({
+                error: 'Error al agregar empleados. Revisa los datos y vuelve a intentar.',
+            });
+        }
+
+        // Si los empleados se agregaron correctamente, insertar asistencias para cada uno
+        const year = new Date().getFullYear();
+        const attendanceRecords = [];
+
+        employees.forEach((emp) => {
+            for (let week = 1; week <= 52; week++) {
+                attendanceRecords.push([
+                    emp.employee_number,
+                    week,
+                    year,
+                    '1', // LUNES
+                    '1', // MARTES
+                    '1', // MIERCOLES
+                    '1', // JUEVES
+                    '1', // VIERNES
+                    '1', // SABADO
+                    '1', // DOMINGO
+                ]);
+            }
+        });
+
+        const attendanceQuery = `
+            INSERT INTO asistencias (EMPLOYEE_NUMBER, WEEK_NUMBER, YEAR, LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO)
+            VALUES ?
+        `;
+
+        db.query(attendanceQuery, [attendanceRecords], (err2) => {
+            if (err2) {
+                console.error('Error al agregar registros de asistencia:', err2);
+                return res.status(500).json({ error: 'Error al generar las asistencias para los nuevos empleados.' });
+            }
+
+            res.status(201).json({
+                message: 'Empleados y asistencias agregados correctamente.',
+                added: result.affectedRows,
+            });
+        });
+    });
+});
+
+
+
+
 // Nueva ruta para actualizar los campos de días pendientes y días tomados
 app.put('/admin/personal/vacaciones/:employee_number', authenticateToken, (req, res) => {
     const { employee_number } = req.params;

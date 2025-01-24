@@ -963,3 +963,41 @@ thead th:hover::after {
     font-weight: bold;
 }
 
+input[type="text"],
+textarea {
+    width: 100%; /* Ajusta el ancho al contenedor padre */
+    max-width: 600px; /* Máximo ancho para mantener proporción */
+    padding: 12px 16px; /* Espaciado interno cómodo */
+    font-size: 16px; /* Texto claro y legible */
+    font-family: 'Arial', sans-serif; /* Fuente profesional */
+    border: 2px solid #ccc; /* Borde neutro */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: #f9f9f9; /* Fondo suave */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera para profundidad */
+    transition: all 0.3s ease-in-out; /* Suaviza cambios al interactuar */
+    outline: none; /* Elimina el contorno azul predeterminado */
+}
+
+/* Efecto al enfocar (clic o tabulación) */
+input[type="text"]:focus,
+textarea:focus {
+    border-color: #007bff; /* Borde destacado (color profesional) */
+    background-color: #ffffff; /* Fondo blanco al interactuar */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Mayor profundidad */
+}
+
+/* Estilo para placeholder (texto de ayuda) */
+input[type="text"]::placeholder,
+textarea::placeholder {
+    color: #999; /* Color suave */
+    font-style: italic; /* Texto estilizado */
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    input[type="text"],
+    textarea {
+        max-width: 100%; /* Ocupa todo el ancho en móviles */
+        font-size: 14px; /* Ajuste de texto para pantallas pequeñas */
+    }
+}

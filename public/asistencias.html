@@ -11,7 +11,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.25 </span>
+            <span class="version-info">Versión 1.28 </span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -463,6 +463,9 @@ function renderComboBox(fieldName, value, options = [ "1", "F", "0.5TE", "1TE", 
     `;
 }
 
+// Variable global para rastrear si hay una fila en modo de edición
+let isRowBeingEdited = false;
+
 // Función para habilitar la edición en un campo al hacer doble clic
 function enableEdit(inputElement) {
     inputElement.disabled = false; 
@@ -477,6 +480,12 @@ function toggleEdit(button) {
     const row = button.closest('tr');
     const inputs = row.querySelectorAll('input, select');
     const isEditing = button.textContent === 'Guardar';
+
+    // Verificar si ya hay una fila en edición
+    if (!isEditing && isRowBeingEdited) {
+        alert('Solo puedes editar una fila a la vez. Por favor, guarda los cambios antes de editar otra fila.');
+        return;
+    }
 
     // Obtén la semana y el año seleccionados en los selectores de semana y año
     const selectedWeek = parseInt(document.getElementById('week-selector').value);
@@ -562,8 +571,7 @@ function toggleEdit(button) {
 
             if (data.success) {
                 alert('Cambios guardados correctamente.');
-                updateAttendanceTable()
-            
+                updateAttendanceTable();
             } else {
                 alert('Hubo un error al guardar los cambios.');
             }
@@ -575,11 +583,27 @@ function toggleEdit(button) {
 
         inputs.forEach(input => input.disabled = true);
         button.textContent = 'Editar';
+        isRowBeingEdited = false; // Permitir la edición de otra fila
     } else {
         inputs.forEach(input => input.disabled = false);
         button.textContent = 'Guardar';
+        isRowBeingEdited = true; // Bloquear la edición de otra fila
     }
 }
+
+// Agregar funcionalidad para editar la fila completa al hacer doble clic
+document.querySelector('#attendance-table').addEventListener('dblclick', function (event) {
+    const targetRow = event.target.closest('tr');
+    if (!targetRow) return;
+
+    // Buscar el botón "Editar" en la fila
+    const editButton = targetRow.querySelector('button');
+    if (editButton && editButton.textContent === 'Editar') {
+        editButton.click(); // Simula el clic en el botón "Editar"
+    }
+});
+
+
 
 // Funciones de ayuda para obtener la semana actual y la fecha de inicio de una semana ISO
 function getCurrentWeek() {
@@ -1283,6 +1307,7 @@ function translateValue(value) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const tableContainer = document.querySelector('.table-container');
+
 
     let isDragging = false;
     let startX, scrollLeft;
