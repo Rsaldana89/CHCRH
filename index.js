@@ -16,6 +16,35 @@ const schedule = require('node-schedule');
 
 process.env.TZ = 'America/Mexico_City';
 
+// Definir la ruta del archivo de logs y la función logActivity
+const logPath = path.join(__dirname, 'public', 'log.json');
+
+function logActivity(action, user, details) {
+    const query = `
+        INSERT INTO logs (action, user, details)
+        VALUES (?, ?, ?)
+    `;
+
+    const values = [
+        action,
+        user,
+        JSON.stringify(details) // Convertir los detalles a texto
+    ];
+
+    db.query(query, values, (err) => {
+        if (err) {
+            // Ignorar errores relacionados con la tabla 'logs' inexistente
+            if (err.code === 'ER_NO_SUCH_TABLE') {
+                console.warn('La tabla "logs" no existe. Registro de logs omitido.');
+            } else {
+                console.error('Error al registrar el log en la base de datos:', err);
+            }
+        }
+    });
+}
+
+
+
 
 // Ruta de la carpeta de backups
 const backupsDir = path.join(__dirname, 'backups');
@@ -248,7 +277,6 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    
     db.query(query, [employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
@@ -277,11 +305,19 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
                 return res.status(500).json({ error: 'Error al generar las asistencias para el nuevo empleado' });
             }
 
+            // Registrar la acción en el log
+            logActivity('Agregar empleado', req.user.username, { 
+                employee_number, 
+                full_name, 
+                department_name, 
+                start_date 
+            });
+
             res.status(201).json({ message: 'Empleado y asistencias agregados correctamente' });
         });
     });
-
 });
+
 
 app.post('/admin/personal/bulk', authenticateToken, (req, res) => {
     const employees = req.body; // Se espera un array de empleados
@@ -368,6 +404,16 @@ app.post('/admin/personal/bulk', authenticateToken, (req, res) => {
                 return res.status(500).json({ error: 'Error al generar las asistencias para los nuevos empleados.' });
             }
 
+            // Registrar la acción en el log
+            logActivity('Agregar empleados (masivo)', req.user.username, {
+                total_empleados: employees.length,
+                empleados: employees.map((e) => ({
+                    employee_number: e.employee_number,
+                    full_name: e.full_name,
+                    department_name: e.department_name,
+                })),
+            });
+
             res.status(201).json({
                 message: 'Empleados y asistencias agregados correctamente.',
                 added: result.affectedRows,
@@ -391,12 +437,21 @@ app.put('/admin/personal/vacaciones/:employee_number', authenticateToken, (req, 
             if (err) {
                 return res.status(500).json({ error: 'Error al actualizar los datos de vacaciones' });
             }
+
+            // Registrar la acción en el log
+            logActivity('Actualizar vacaciones', req.user.username, {
+                employee_number,
+                days_pending,
+                days_taken,
+            });
+
             res.json({ message: 'Vacaciones actualizadas correctamente' });
         });
     } else {
         res.status(400).json({ error: 'Los valores de días deben estar entre 0 y 60' });
     }
 });
+
 
 // Nueva ruta para actualizar los registros de asistencia en la base de datos
 // Nueva ruta para actualizar los registros de asistencia en la base de datos
@@ -452,6 +507,19 @@ app.put('/admin/attendances/:employee_number/:week/:year', authenticateToken, (r
             console.error('Error al actualizar los datos de asistencia:', err);
             return res.status(500).json({ error: 'Error al actualizar los datos de asistencia' });
         }
+
+        // Registrar la acción en el log
+        logActivity('Actualizar asistencia', req.user.username, {
+            employee_number,
+            week,
+            year,
+            asistencia: {
+                LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO,
+                COMPENSACION, COMISION, BONO_PRODUCTIVIDAD, APOYO_TRANSPORTE, PRIMA_DOMINICAL,
+                DESCUENTO_PRESTAMO_INVENTARIO, BONO_RECOMENDACION, DESCUENTO_EFECTIVO, NOTAS
+            }
+        });
+
         res.json({ success: true, message: 'Asistencia actualizada correctamente' });
     });
 });
@@ -494,9 +562,27 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
         if (err) {
             return res.status(500).json({ error: 'Error al actualizar el empleado' });
         }
+
+        // Registrar la acción en el log
+        logActivity('Actualizar empleado', req.user.username, {
+            employee_number,
+            updated_fields: {
+                full_name,
+                rfc,
+                curp,
+                nss,
+                puesto,
+                department_name,
+                start_date,
+                fecha_baja,
+                fecha_reingreso
+            }
+        });
+
         res.json({ message: 'Empleado actualizado correctamente' });
     });
 });
+
 
 // Modificación para actualizar la fecha de baja con fecha proporcionada o actual
 app.put('/admin/personal/baja/:employee_number', authenticateToken, (req, res) => {
@@ -517,9 +603,17 @@ app.put('/admin/personal/baja/:employee_number', authenticateToken, (req, res) =
             console.error('Error al dar de baja al empleado:', err);
             return res.status(500).json({ error: 'Error al dar de baja al empleado.' });
         }
+
+        // Registrar la acción en el log
+        logActivity('Dar de baja empleado', req.user.username, {
+            employee_number,
+            fecha_baja: finalFechaBaja
+        });
+
         res.json({ message: 'Empleado dado de baja correctamente', fecha_baja: finalFechaBaja });
     });
 });
+
 
 
 app.get('/admin/attendances', authenticateToken, (req, res) => {
