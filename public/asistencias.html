@@ -11,7 +11,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.28 </span>
+            <span class="version-info">Versión 1.31 Beta </span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -851,6 +851,16 @@ function exportarAsistenciasCompaqEYE() {
     let data = [];
     let headers = [];
 
+    // Diccionario de mapeo: Traducción de Bitácora RH a SAP
+    const departmentMap = {
+        "EYE ADMINISTRACION": "Admin",
+        "EYE TORTILLAS": "Tortillas",
+        "EYE QUESOS FRESCOS": "Quesos Frescos",
+        "EYE CONVERSION 1ER TURNO": "Analogos",
+        "EYE CONVERSION 2DO TURNO": "Analogos",
+        "EYE CONTROL PRODUCCION": "Admin"
+    };
+
     // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
     for (let j = 0; j < table.rows[0].cells.length; j++) {
         if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
@@ -859,16 +869,18 @@ function exportarAsistenciasCompaqEYE() {
     }
     data.push(headers);
 
-    // Filtrar filas por departamento que comience con "EYE"
+    // Filtrar filas por departamentos "EYE"
     for (let i = 1; i < table.rows.length; i++) {
-        let departamento = table.rows[i].cells[2].innerText; // Columna de "Departamento"
-        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB'))  {
+        let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
+
+        if (departamento.startsWith('EYE')) {
             let rowData = [];
+
             for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir la columna "Acciones"
                 let cell = table.rows[i].cells[j];
                 let value;
 
-                // Si la celda contiene un <select>, obtener el valor seleccionado
+                // Obtener el valor dependiendo si es un select, input o texto normal
                 if (cell.querySelector('select')) {
                     value = cell.querySelector('select').value;
                 } else if (cell.querySelector('input')) {
@@ -879,9 +891,15 @@ function exportarAsistenciasCompaqEYE() {
 
                 const columnName = headers[j];
 
-                // Limpiar campos numéricos con valor 0
+                // Aplicar la conversión solo en la columna "Departamento"
+                if (columnName === "DEPARTAMENTO" && departmentMap[departamento]) {
+                    value = departmentMap[departamento];
+                }
+
+                // Limpiar valores 0 en campos numéricos
                 if (
-                    ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                    ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", 
+                     "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
                     parseFloat(value) === 0
                 ) {
                     value = ''; // Dejar vacío si el valor es 0.00
@@ -892,7 +910,7 @@ function exportarAsistenciasCompaqEYE() {
                     value = ''; 
                 }
 
-                // Traducir el valor (F->FINJ, TE->HE2, y quitar ceros)
+                // Traducir valores especiales (F->FINJ, TE->HE2, quitar ceros)
                 value = translateValue(value);
 
                 rowData.push(value);
@@ -909,6 +927,7 @@ function exportarAsistenciasCompaqEYE() {
     // Descargar el archivo Excel
     XLSX.writeFile(wb, 'asistencias_compaq_EYE.xlsx');
 }
+
 
 
 function exportarAsistenciasCompaqCHC() {
@@ -1067,112 +1086,24 @@ function SoloIncidenciasCompaq() {
     XLSX.writeFile(wb, 'solo_incidencias_compaq.xlsx');
 }
 
-
-function SoloIncidenciasCHC() {
-    const table = document.getElementById('attendance-table');
-    let data = [];
-    let headers = [];
-
-    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
-    for (let j = 0; j < table.rows[0].cells.length; j++) {
-        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
-            headers.push(table.rows[0].cells[j].innerText);
-        }
-    }
-    data.push(headers);
-
-    // Filtrar filas por departamentos que NO empiecen con "EYE" o "ELAB"
-    for (let i = 1; i < table.rows.length; i++) {
-        let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
-        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB')) {
-            continue; // Saltar esta fila
-        }
-
-        let rowData = [];
-        let includeRow = false; // Bandera para incluir la fila en el reporte
-        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
-
-        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
-            let cell = table.rows[i].cells[j];
-            let value;
-
-            // Obtener el valor de la celda (select/input/text)
-            if (cell.querySelector('select')) {
-                value = cell.querySelector('select').value;
-            } else if (cell.querySelector('input')) {
-                value = cell.querySelector('input').value;
-            } else {
-                value = cell.innerText;
-            }
-
-            const columnName = headers[j];
-
-            // Guardar el valor de "Notas" para verificar más adelante
-            if (columnName === "NOTAS") {
-                cellNotesValue = value.trim().toLowerCase();
-            }
-
-            // Limpiar campos numéricos con valor 0
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                parseFloat(value) === 0
-            ) {
-                value = ''; // Dejar vacío si el valor es 0.00
-            }
-
-            // Traducir el valor utilizando la función existente translateValue
-            value = translateValue(value);
-
-            // Verificar las reglas para incluir la fila
-            if (
-                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
-                value !== "1"
-            ) {
-                includeRow = true;
-            }
-
-            if (columnName === "PRIMA DOMINICAL" && value === "1") {
-                includeRow = true;
-            }
-
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                value !== ""
-            ) {
-                includeRow = true;
-            }
-
-            rowData.push(value);
-        }
-
-        // Incluir la fila si "Notas" es diferente de "sin notas"
-        if (cellNotesValue !== "sin notas") {
-            includeRow = true;
-        }
-
-        // Agregar la fila al reporte si cumple con las condiciones
-        if (includeRow) {
-            data.push(rowData);
-        }
-    }
-
-    // Generar el archivo Excel
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias CHC');
-
-    // Descargar el archivo Excel
-    XLSX.writeFile(wb, 'solo_incidencias_chc.xlsx');
-}
-
 function SoloIncidenciasEYE() {
     const table = document.getElementById('attendance-table');
     let data = [];
     let headers = [];
 
+    // Diccionario de mapeo: Traducción de Bitácora RH a SAP
+    const departmentMap = {
+        "EYE ADMINISTRACION": "Admin",
+        "EYE TORTILLAS": "Tortillas",
+        "EYE QUESOS FRESCOS": "Quesos Frescos",
+        "EYE CONVERSION 1ER TURNO": "Analogos",
+        "EYE CONVERSION 2DO TURNO": "Analogos",
+        "EYE CONTROL PRODUCCION": "Admin"
+    };
+
     // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
     for (let j = 0; j < table.rows[0].cells.length; j++) {
-        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
+        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna "Acciones"
             headers.push(table.rows[0].cells[j].innerText);
         }
     }
@@ -1182,7 +1113,7 @@ function SoloIncidenciasEYE() {
     for (let i = 1; i < table.rows.length; i++) {
         let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
         if (!departamento.startsWith('EYE') && !departamento.startsWith('ELAB')) {
-            continue; // Saltar esta fila
+            continue; // Saltar esta fila si no es de EYE o ELAB
         }
 
         let rowData = [];
@@ -1204,23 +1135,29 @@ function SoloIncidenciasEYE() {
 
             const columnName = headers[j];
 
+            // Aplicar la conversión de departamento si es necesario
+            if (columnName === "DEPARTAMENTO" && departmentMap[departamento]) {
+                value = departmentMap[departamento];
+            }
+
             // Guardar el valor de "Notas" para verificar más adelante
             if (columnName === "NOTAS") {
                 cellNotesValue = value.trim().toLowerCase();
             }
 
-            // Limpiar campos numéricos con valor 0
+            // Limpiar valores numéricos de "0"
             if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", 
+                 "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
                 parseFloat(value) === 0
             ) {
                 value = ''; // Dejar vacío si el valor es 0.00
             }
 
-            // Traducir el valor utilizando la función existente translateValue
+            // Traducir valores especiales (F->FINJ, TE->HE2, eliminar ceros innecesarios)
             value = translateValue(value);
 
-            // Verificar las reglas para incluir la fila
+            // Verificar si la fila debe incluirse en el reporte
             if (
                 ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
                 value !== "1"
@@ -1233,7 +1170,8 @@ function SoloIncidenciasEYE() {
             }
 
             if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
+                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", 
+                 "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
                 value !== ""
             ) {
                 includeRow = true;
@@ -1261,10 +1199,6 @@ function SoloIncidenciasEYE() {
     // Descargar el archivo Excel
     XLSX.writeFile(wb, 'solo_incidencias_eye.xlsx');
 }
-
-
-
-
 
 
 // Función para traducir los valores de "TE" a "HE2" y "F" a "FINJ"
