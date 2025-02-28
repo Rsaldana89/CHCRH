@@ -545,7 +545,7 @@ th:nth-child(1), td:nth-child(1) {
 #personal-table td:nth-child(1) {
     position: sticky;
     left: 0;
-    background-color: #f4f4f4; /* Fondo fijo */
+    background-color: rgb(252, 245, 164); /* Fondo fijo */
     z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
     min-width: 80px; /* Define un ancho mínimo consistente */
     max-width: 80px; /* Evita que crezca */
@@ -556,7 +556,7 @@ th:nth-child(1), td:nth-child(1) {
 #personal-table td:nth-child(2) {
     position: sticky;
     left: 80px; /* Ancho acumulado exacto de la primera columna */
-    background-color: #f4f4f4; /* Fondo fijo */
+    background-color: #b3d9ff; /* Fondo fijo */
     z-index: 2; /* Asegurarse de que esté sobre las otras columnas */
     min-width: 200px; /* Define un ancho mínimo */
     max-width: 300px; /* Permite crecer hasta cierto punto */
@@ -947,7 +947,7 @@ thead th:hover::after {
 #personal-table td:nth-child(2) {
     position: sticky;
     left: 0;
-    background-color: #f5f5f5; /* Fondo claro para columnas fijas */
+    
     z-index: 2; /* Menor que los encabezados */
     border-right: 1px solid #ddd; /* Separador visual */
 }
@@ -1001,3 +1001,67 @@ textarea::placeholder {
         font-size: 14px; /* Ajuste de texto para pantallas pequeñas */
     }
 }
+
+/* Primera columna (ID) -- asumiendo que es la columna 1 */
+.attendance-table th:nth-child(1),
+.attendance-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    background-color: rgb(252, 245, 164); /* Amarillo */
+    z-index: 2;
+    /* Fijar un ancho para que la segunda columna sepa cuánto desplazarse */
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Segunda columna (Nombre) -- asumiendo que es la columna 2 */
+.attendance-table th:nth-child(2),
+.attendance-table td:nth-child(2) {
+    position: sticky;
+    /* Se desplaza lo mismo que mida la 1.ª columna (80px en este caso) */
+    left: 80px; 
+    background-color: #b3d9ff; /* Un azul claro, cámbialo al que desees */
+    z-index: 2;
+    width: 230px;    /* Ajusta el ancho a tu gusto */
+    min-width: 180px;
+    max-width: 350px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Muestra "..." si se corta el nombre */
+}
+
+/* Si deseas que se vea completo al pasar el cursor, puedes añadir: */
+.attendance-table td:nth-child(2):hover {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    background-color: #64b5f6; /* Azul de hover */
+    color: #ffffff;           /* Letra blanca en el hover */
+    z-index: 3;              /* Para que sobresalga sobre otras columnas */
+}
+
+/* Ajustar el ancho y aspecto del rango de semana (week-range) */
+#week-range {
+    width: 120px;       /* Ajusta a tu gusto (más pequeño que antes) */
+    padding: 3px 5px;   /* Menos padding para que no se vea tan grande */
+    font-size: 14px;    /* Ajusta el tamaño de fuente */
+    margin-left: 5px;   /* Menos separación con el elemento anterior */
+    border-radius: 4px; /* Bordes ligeramente redondeados */
+  }
+  
+  /* Ajustar el ancho y aspecto del buscador (search-input) */
+  #search-input {
+    width: 300px;       /* Un tamaño moderado */
+    padding: 4px 8px;   /* Espaciado interno cómodo */
+    font-size: 14px;    /* Texto un poco más pequeño */
+    border-radius: 4px; /* Bordes redondeados */
+    margin-left: 10px;  /* Espacio para separarlo del elemento anterior */
+  }
+  
+  

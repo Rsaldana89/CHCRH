@@ -709,16 +709,29 @@ function sortPersonal(criteria) {
         } else {
             console.log(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
             alert(isAdding ? 'Empleado agregado correctamente' : 'Empleado actualizado correctamente');
-              // Actualizar la tabla directamente después de guardar
-              fetchUpdatedPersonalData();
 
-              // Cerrar el modal después de guardar
-              closeEmployeeModal();
-            
+            // 1. Guardar la búsqueda actual:
+            const currentSearch = document.getElementById('search-input').value;
+
+            // 2. Actualizar la tabla
+            fetchUpdatedPersonalData();
+
+            // 3. Con un ligero retardo, restaurar la búsqueda y llamar a searchEmployee().
+            //    (Sólo si había algo escrito en el cuadro)
+            setTimeout(() => {
+                document.getElementById('search-input').value = currentSearch;
+                if (currentSearch.trim() !== "") {
+                    searchEmployee();
+                }
+            }, 300);
+
+            // 4. Cerrar el modal al final
+            closeEmployeeModal();
         }
     })
     .catch(error => console.error('Error al guardar empleado:', error));
 });
+
 
         
         function convertToDateInputFormat(dateString) {
@@ -1305,9 +1318,9 @@ function backupDatabase() {
 
 function fetchUpdatedPersonalData() {
     // Guardar el estado actual
-    const currentSearchQuery = document.getElementById('search-input').value.toLowerCase();
+    const currentSearchQuery = document.getElementById('search-input').value.toLowerCase().trim();
     const currentDepartmentFilter = document.getElementById('department-filter').value;
-    const currentSortCriteria = localStorage.getItem('currentSortCriteria') || '';
+    const currentSortCriteria = localStorage.getItem('currentSortCriteria') || 'employee_number';
     const currentSortOrder = localStorage.getItem('currentSortOrder') || 'asc';
     const scrollPosition = document.querySelector('.table-container').scrollLeft;
 
@@ -1327,34 +1340,38 @@ function fetchUpdatedPersonalData() {
     .then(data => {
         personalData = data;
 
-        // Filtrar datos
-        const filteredData = personalData.filter(emp => {
-            const matchesSearchQuery = emp.full_name.toLowerCase().includes(currentSearchQuery) || 
-                                       emp.employee_number.toString().includes(currentSearchQuery);
-            const matchesDepartment = currentDepartmentFilter === '' || emp.department_name === currentDepartmentFilter;
-            return matchesSearchQuery && matchesDepartment;
-        });
+        let filteredData = personalData;
 
-        // Ordenar datos: "Baja" al final, luego por criterio actual o por ID
+        // Si hay búsqueda o filtro, filtrar los datos
+        if (currentSearchQuery || currentDepartmentFilter) {
+            filteredData = personalData.filter(emp => {
+                const matchesSearchQuery =
+                    emp.full_name.toLowerCase().includes(currentSearchQuery) ||
+                    emp.employee_number.toString().includes(currentSearchQuery);
+                const matchesDepartment =
+                    currentDepartmentFilter === '' || emp.department_name === currentDepartmentFilter;
+
+                return matchesSearchQuery && matchesDepartment;
+            });
+        }
+
+        // Aplicar ordenamiento **siempre** (para mantener consistencia)
         filteredData.sort((a, b) => {
             if (a.department_name === 'Baja' && b.department_name !== 'Baja') return 1;
             if (a.department_name !== 'Baja' && b.department_name === 'Baja') return -1;
 
-            if (currentSortCriteria) {
-                const valueA = a[currentSortCriteria] || ''; // Tratar valores nulos como cadenas vacías
-                const valueB = b[currentSortCriteria] || '';
-                if (valueA < valueB) return currentSortOrder === 'asc' ? -1 : 1;
-                if (valueA > valueB) return currentSortOrder === 'asc' ? 1 : -1;
-                return 0;
-            } else {
-                return a.employee_number - b.employee_number; // Ordenar por ID como predeterminado
-            }
+            const valueA = a[currentSortCriteria] || ''; // Tratar valores nulos como cadenas vacías
+            const valueB = b[currentSortCriteria] || '';
+
+            if (valueA < valueB) return currentSortOrder === 'asc' ? -1 : 1;
+            if (valueA > valueB) return currentSortOrder === 'asc' ? 1 : -1;
+            return 0;
         });
 
         // Renderizar la tabla con los datos filtrados y ordenados
         renderPersonalTable(filteredData);
 
-        // Restaurar el desplazamiento de la tabla
+        // Restaurar la posición del scroll
         document.querySelector('.table-container').scrollLeft = scrollPosition;
     })
     .catch(error => {
@@ -1362,6 +1379,7 @@ function fetchUpdatedPersonalData() {
         alert('Ocurrió un error al actualizar los datos del personal.');
     });
 }
+
 
 
 

@@ -42,13 +42,20 @@
             <div class="selectors">
                 <label for="week-selector">Semana:</label>
                 <select id="week-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
-
+            
                 <label for="year-selector">Año:</label>
                 <select id="year-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
-
+            
                 <input type="text" id="week-range" readonly style="margin-left: 20px; padding: 5px; border: 1px solid #ccc;">
-                <button id="calculate-btn" onclick="updateAttendanceTable()">Calcular</button>
+            
+                
+                <!-- Campo de búsqueda y botón "Buscar" -->
+                <input type="text" id="search-input" 
+                       placeholder="Buscar por ID, nombre o departamento..." 
+                       style="margin-left: 20px; padding: 5px; border: 1px solid #ccc;">
+                <button style="padding: 5px; margin-left: 5px;" onclick="searchAttendance()">Buscar</button>
             </div>
+            
 
             <div class="table-container">
                 <table id="attendance-table" class="attendance-table">
@@ -183,6 +190,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+let allAttendanceData = [];
+
+
 // Control de la dirección de ordenamiento para cada campo
 let sortDirection = { ID: true, Nombre: true, Departamento: true };
 
@@ -296,7 +306,7 @@ function updateAttendanceTable() {
 
 
 function loadAttendanceData(week, year, departments) {
-    fetch(`/admin/attendances?week=${week}&year=${year}`, {
+    return fetch(`/admin/attendances?week=${week}&year=${year}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -305,13 +315,44 @@ function loadAttendanceData(week, year, departments) {
     .then(response => response.json())
     .then(data => {
         // Filtrar asistencias por los departamentos permitidos
-        const filteredData = data.filter(attendance => 
+        const filtered = data.filter(attendance => 
             departments.includes('Todos') || departments.includes(attendance.Departamento)
         );
-        renderAttendanceTable(filteredData);
+
+        // Guardar los datos en el array global
+        allAttendanceData = filtered;
+
+        // Renderizar la tabla con esos datos
+        renderAttendanceTable(allAttendanceData);
     })
     .catch(error => console.error('Error al cargar las asistencias:', error));
 }
+
+
+function searchAttendance() {
+    const searchValue = document.getElementById('search-input').value.toLowerCase().trim();
+    
+    // 1. Filtrar en el array allAttendanceData
+    const filtered = allAttendanceData.filter(item => {
+        // item es un objeto de asistencia, p.ej.:
+        // { Codigo trabajador: 123, Nombre: 'Juan', Departamento: 'Empaque', ... }
+        
+        const idStr  = item['Codigo trabajador'].toString().padStart(5, '0').toLowerCase();
+        const nameStr = (item.Nombre || '').toLowerCase();
+        const deptStr = (item.Departamento || '').toLowerCase();
+        
+        // La fila se incluye si el searchValue coincide en ID, Nombre o Departamento
+        return (
+            idStr.includes(searchValue) ||
+            nameStr.includes(searchValue) ||
+            deptStr.includes(searchValue)
+        );
+    });
+
+    // 2. Vuelves a renderizar la tabla con los resultados filtrados
+    renderAttendanceTable(filtered);
+}
+
 
 
 function renderAttendanceTable(data) {
@@ -487,7 +528,7 @@ function toggleEdit(button) {
         return;
     }
 
-    // Obtén la semana y el año seleccionados en los selectores de semana y año
+    // Obtén la semana y el año seleccionados
     const selectedWeek = parseInt(document.getElementById('week-selector').value);
     const selectedYear = parseInt(document.getElementById('year-selector').value);
 
@@ -499,24 +540,24 @@ function toggleEdit(button) {
     // Verifica el rol del usuario
     const userRole = document.getElementById('user-role').textContent.trim();
 
-    // Calcula el inicio del lunes de la semana actual
+    // Cálculo de 72 horas y permisos de edición
     const startOfCurrentWeek = getDateOfISOWeek(currentWeek, currentYear);
-    const endOf72Hours = new Date(startOfCurrentWeek.getTime() + (72 * 60 * 60 * 1000)); // 48 horas después del inicio del lunes de la semana actual
+    const endOf72Hours = new Date(startOfCurrentWeek.getTime() + (72 * 60 * 60 * 1000));
 
-    // Permitir edición si es administrador o si estamos dentro de las 48 horas de la semana actual para editar la semana anterior
+    // Permitir edición si es admin o si estamos dentro de las 72h de la semana actual para editar la anterior
     if (
-        userRole !== 'admin' && // Admin siempre tiene acceso
-        !isEditing && // Solo verificar antes de habilitar la edición
+        userRole !== 'admin' &&
+        !isEditing &&
         !(
-            (selectedWeek === currentWeek && selectedYear === currentYear) || // Permitir edición en la semana actual
-            (selectedWeek === currentWeek - 1 && selectedYear === currentYear && now <= endOf72Hours) // Permitir edición en la semana anterior durante las primeras 48 horas de la semana actual
+            (selectedWeek === currentWeek && selectedYear === currentYear) ||
+            (selectedWeek === currentWeek - 1 && selectedYear === currentYear && now <= endOf72Hours)
         )
     ) {
         alert("La edición solo está permitida en la semana actual o en la semana anterior durante las primeras 72 horas de la semana actual.");
-        return; // Sale de la función sin habilitar edición si no cumple los requisitos
+        return;
     }
 
-    // Si estamos en modo "Guardar", procesa y envía los datos
+    // Si estamos en modo "Guardar"
     if (isEditing) {
         console.log('Guardando cambios...');
 
@@ -571,7 +612,21 @@ function toggleEdit(button) {
 
             if (data.success) {
                 alert('Cambios guardados correctamente.');
+
+                // 1. Guardar la búsqueda actual
+                const currentSearch = document.getElementById('search-input').value;
+
+                // 2. Recargar la tabla
                 updateAttendanceTable();
+
+                // 3. Esperar un poco, reponer la búsqueda y llamar a searchAttendance()
+                setTimeout(() => {
+                    document.getElementById('search-input').value = currentSearch;
+                    if (currentSearch.trim() !== "") {
+                        searchAttendance();
+                    }
+                }, 300);
+
             } else {
                 alert('Hubo un error al guardar los cambios.');
             }
@@ -583,13 +638,15 @@ function toggleEdit(button) {
 
         inputs.forEach(input => input.disabled = true);
         button.textContent = 'Editar';
-        isRowBeingEdited = false; // Permitir la edición de otra fila
+        isRowBeingEdited = false; 
     } else {
+        // Modo "Editar"
         inputs.forEach(input => input.disabled = false);
         button.textContent = 'Guardar';
-        isRowBeingEdited = true; // Bloquear la edición de otra fila
+        isRowBeingEdited = true; 
     }
 }
+
 
 // Agregar funcionalidad para editar la fila completa al hacer doble clic
 document.querySelector('#attendance-table').addEventListener('dblclick', function (event) {
@@ -999,99 +1056,265 @@ function SoloIncidenciasCompaq() {
     let data = [];
     let headers = [];
 
-    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    // 1. Obtener encabezados (excepto la última columna: "Acciones")
     for (let j = 0; j < table.rows[0].cells.length; j++) {
-        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna (Acciones)
-            headers.push(table.rows[0].cells[j].innerText);
+        if (j !== table.rows[0].cells.length - 1) {
+            headers.push(table.rows[0].cells[j].innerText.trim());
         }
     }
     data.push(headers);
 
-    // Recorrer las filas de la tabla (exceptuando los encabezados)
+    // 2. Definir las columnas de días y las numéricas
+    const dayColumns = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+    const numericColumns = [
+        "TOTAL EXTRA", "DT", "DFT", "FALTA", "INC", "VAC",
+        "COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD",
+        "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO",
+        "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"
+    ];
+
+    // 3. Recorrer cada fila de datos
     for (let i = 1; i < table.rows.length; i++) {
         let rowData = [];
-        let includeRow = false; // Bandera para incluir la fila en el reporte
-        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
+        let includeRow = false;
+        let cellNotesValue = "";
 
-        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
-            let cell = table.rows[i].cells[j];
-            let value;
-
-            // Obtener el valor de la celda (select/input/text)
-            if (cell.querySelector('select')) {
-                value = cell.querySelector('select').value;
-            } else if (cell.querySelector('input')) {
-                value = cell.querySelector('input').value;
-            } else {
-                value = cell.innerText;
-            }
-
+        // 4. Recorrer columnas (excepto la última: "Acciones")
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
+            const cell = table.rows[i].cells[j];
             const columnName = headers[j];
 
-            // Guardar el valor de "Notas" para verificar más adelante
+            // a) Obtener el valor crudo (select/input/text) sin espacios
+            let rawValue = "";
+            if (cell.querySelector('select')) {
+                rawValue = cell.querySelector('select').value.trim();
+            } else if (cell.querySelector('input')) {
+                rawValue = cell.querySelector('input').value.trim();
+            } else {
+                rawValue = cell.innerText.trim();
+            }
+
+            // b) Inicializar finalValue con el valor crudo
+            let finalValue = rawValue;
+
+            // c) Guardar "NOTAS" en minúsculas, para ver si es "sin notas"
             if (columnName === "NOTAS") {
-                cellNotesValue = value.trim().toLowerCase();
+                cellNotesValue = rawValue.toLowerCase();
             }
 
-            // Limpiar valores numéricos de "0"
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                parseFloat(value) === 0
-            ) {
-                value = ''; // Dejar vacío si el valor es 0
+            // d) Si es una de las columnas de días (LU..DO)...
+            if (dayColumns.includes(columnName)) {
+                // Usamos la traducción (F->FINJ, TE->HE2, etc.)
+                const translated = translateValue(rawValue);
+                // Si es exactamente "1", lo ponemos como vacío
+                finalValue = (translated === "1") ? "" : translated;
+            }
+            // e) Si es una columna numérica...
+            else if (numericColumns.includes(columnName)) {
+                // 1) Traducir por si viene "4TE" -> "4HE2"
+                const translated = translateValue(rawValue);
+                // 2) Extraer dígitos de la cadena traducida
+                const match = translated.match(/\d+(\.\d+)?/);
+                if (match) {
+                    const numVal = parseFloat(match[0]);
+                    // Si es 0 o no es válido, se queda vacío. Si no, es un número.
+                    if (!isNaN(numVal) && numVal !== 0) {
+                        finalValue = numVal; 
+                    } else {
+                        finalValue = "";
+                    }
+                } else {
+                    finalValue = "";
+                }
+            }
+            // f) Para otras columnas, solo traducimos
+            else {
+                finalValue = translateValue(rawValue);
             }
 
-            // Traducir el valor utilizando la función existente translateValue
-            value = translateValue(value);
+            // g) Al final, si finalValue quedó como cadena vacía, lo convertimos en null.
+            //    Esto hace que Excel trate la celda como realmente "vacía" y no como texto.
+            if (finalValue === "") {
+                finalValue = null;
+            }
 
-            // Verificar las reglas para incluir la fila
-            if (
-                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
-                value !== "1"
-            ) {
+            // h) Revisar si la fila debe incluirse, usando el valor original (rawValue)
+            //    - Si es columna de día y rawValue != "1", incluimos
+            if (dayColumns.includes(columnName) && rawValue !== "1") {
+                includeRow = true;
+            }
+            //    - PRIMA DOMINICAL == "1"
+            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
+                includeRow = true;
+            }
+            //    - Si es columna numérica y finalValue no es null, hay un valor numérico
+            if (numericColumns.includes(columnName) && finalValue !== null) {
                 includeRow = true;
             }
 
-            if (columnName === "PRIMA DOMINICAL" && value === "1") {
-                includeRow = true;
-            }
-
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                value !== ""
-            ) {
-                includeRow = true;
-            }
-
-            rowData.push(value);
+            // i) Agregar finalValue (puede ser null, string o number) a la fila
+            rowData.push(finalValue);
         }
 
-        // Incluir la fila si "Notas" es diferente de "sin notas"
+        // 5. Incluir la fila si NOTAS no es "sin notas"
         if (cellNotesValue !== "sin notas") {
             includeRow = true;
         }
 
-        // Agregar la fila al reporte si cumple con las condiciones
+        // 6. Agregar la fila si se debe incluir
         if (includeRow) {
             data.push(rowData);
         }
     }
 
-    // Generar el archivo Excel
+    // 7. Crear y descargar el archivo Excel
     const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    // OBS: XLSX interpretará null como celdas vacías (no cadenas vacías).
+    // Y los valores numéricos (tipo Number) los marcará como celdas numéricas en Excel.
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias Compaq');
-
-    // Descargar el archivo Excel
     XLSX.writeFile(wb, 'solo_incidencias_compaq.xlsx');
 }
+
+function SoloIncidenciasCHC() {
+    const table = document.getElementById('attendance-table');
+    let data = [];
+    let headers = [];
+
+    // 1. Obtener encabezados, sin la última columna ("Acciones")
+    for (let j = 0; j < table.rows[0].cells.length; j++) {
+        if (j !== table.rows[0].cells.length - 1) {
+            headers.push(table.rows[0].cells[j].innerText.trim());
+        }
+    }
+    data.push(headers);
+
+    // 2. Definir columnas de días y columnas numéricas (igual que en tus otras funciones)
+    const dayColumns = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+    const numericColumns = [
+        "TOTAL EXTRA", "DT", "DFT", "FALTA", "INC", "VAC",
+        "COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD",
+        "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO",
+        "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"
+    ];
+
+    // 3. Recorrer las filas (saltando la de encabezados)
+    for (let i = 1; i < table.rows.length; i++) {
+        // Verificar departamento: si inicia con "EYE" o "ELAB", se omite
+        let departamento = table.rows[i].cells[2].innerText.trim();
+        if (departamento.startsWith('EYE') || departamento.startsWith('ELAB')) {
+            continue; 
+        }
+
+        let rowData = [];
+        let includeRow = false;
+        let cellNotesValue = "";
+
+        // 4. Recorrer columnas de la fila (excepto la última: "Acciones")
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
+            const cell = table.rows[i].cells[j];
+            const columnName = headers[j];
+
+            // 4.1. Obtener valor crudo sin espacios
+            let rawValue = "";
+            if (cell.querySelector('select')) {
+                rawValue = cell.querySelector('select').value.trim();
+            } else if (cell.querySelector('input')) {
+                rawValue = cell.querySelector('input').value.trim();
+            } else {
+                rawValue = cell.innerText.trim();
+            }
+
+            let finalValue = rawValue;
+
+            // 4.2. NOTAS: bajar a minúsculas para comprobar "sin notas"
+            if (columnName === "NOTAS") {
+                cellNotesValue = rawValue.toLowerCase();
+            }
+
+            // 4.3. Si es columna de días
+            if (dayColumns.includes(columnName)) {
+                const translated = translateValue(rawValue); // e.g. "F"->"FINJ", "TE"->"HE2"
+                // Si queda "1", lo dejamos en blanco (null)
+                finalValue = (translated === "1") ? "" : translated;
+            }
+            // 4.4. Si es columna numérica
+            else if (numericColumns.includes(columnName)) {
+                // Traducir primero ("4TE" -> "4HE2", etc.)
+                const translated = translateValue(rawValue);
+                // Buscar dígitos
+                const match = translated.match(/\d+(\.\d+)?/);
+                if (match) {
+                    const numVal = parseFloat(match[0]);
+                    // Si es un número distinto de 0, guardamos numVal; si no, vacío
+                    if (!isNaN(numVal) && numVal !== 0) {
+                        finalValue = numVal; 
+                    } else {
+                        finalValue = "";
+                    }
+                } else {
+                    finalValue = "";
+                }
+            }
+            // 4.5. Para otras columnas, solo traducir
+            else {
+                finalValue = translateValue(rawValue);
+            }
+
+            // 4.6. Convertir cadena vacía a null (celdas realmente vacías)
+            if (finalValue === "") {
+                finalValue = null;
+            }
+
+            // 4.7. Lógica de inclusión (usa el valor original rawValue)
+            //      a) Si es día y no es "1"
+            if (dayColumns.includes(columnName) && rawValue !== "1") {
+                includeRow = true;
+            }
+            //      b) PRIMA DOMINICAL == "1"
+            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
+                includeRow = true;
+            }
+            //      c) Columna numérica y finalValue no es null => num
+            if (numericColumns.includes(columnName) && finalValue !== null) {
+                includeRow = true;
+            }
+
+            // 4.8. Agregar finalValue a la fila
+            rowData.push(finalValue);
+        }
+
+        // 5. Incluir la fila si NOTAS != "sin notas"
+        if (cellNotesValue !== "sin notas") {
+            includeRow = true;
+        }
+
+        // 6. Agregar fila si aplica
+        if (includeRow) {
+            data.push(rowData);
+        }
+    }
+
+    // 7. Crear y descargar el Excel
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias CHC');
+    XLSX.writeFile(wb, 'solo_incidencias_chc.xlsx');
+}
+
+
+
+
+
 
 function SoloIncidenciasEYE() {
     const table = document.getElementById('attendance-table');
     let data = [];
     let headers = [];
 
-    // Diccionario de mapeo: Traducción de Bitácora RH a SAP
+    // 1. Diccionario de mapeo: Bitácora RH a SAP (departamentos)
     const departmentMap = {
         "EYE ADMINISTRACION": "Admin",
         "EYE TORTILLAS": "Tortillas",
@@ -1101,102 +1324,130 @@ function SoloIncidenciasEYE() {
         "EYE CONTROL PRODUCCION": "Admin"
     };
 
-    // Obtener los encabezados de la tabla, excluyendo la columna de "Acciones"
+    // 2. Obtener los encabezados, excluyendo "Acciones"
     for (let j = 0; j < table.rows[0].cells.length; j++) {
-        if (j !== table.rows[0].cells.length - 1) { // Omitir la última columna "Acciones"
-            headers.push(table.rows[0].cells[j].innerText);
+        if (j !== table.rows[0].cells.length - 1) {
+            headers.push(table.rows[0].cells[j].innerText.trim());
         }
     }
     data.push(headers);
 
-    // Filtrar filas por departamentos que empiecen con "EYE" o "ELAB"
+    // 3. Listas de columnas de días y columnas numéricas
+    const dayColumns = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
+    const numericColumns = [
+        "TOTAL EXTRA", "DT", "DFT", "FALTA", "INC", "VAC",
+        "COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD",
+        "APOYO TRANSPORTE", "DESCUENTO PRÉSTAMO INVENTARIO",
+        "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"
+    ];
+
+    // 4. Recorrer filas (saltando encabezados)
     for (let i = 1; i < table.rows.length; i++) {
-        let departamento = table.rows[i].cells[2].innerText.trim(); // Columna "Departamento"
+        // Verificar si el departamento inicia con "EYE" o "ELAB"
+        let departamento = table.rows[i].cells[2].innerText.trim();
         if (!departamento.startsWith('EYE') && !departamento.startsWith('ELAB')) {
-            continue; // Saltar esta fila si no es de EYE o ELAB
+            continue; // saltar esta fila
         }
 
         let rowData = [];
-        let includeRow = false; // Bandera para incluir la fila en el reporte
-        let cellNotesValue = ""; // Variable para almacenar el valor de "Notas"
+        let includeRow = false; 
+        let cellNotesValue = "";
 
-        for (let j = 0; j < table.rows[i].cells.length - 1; j++) { // Excluir "Acciones"
+        // 5. Recorrer columnas de la fila (excepto la última: Acciones)
+        for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
             let cell = table.rows[i].cells[j];
-            let value;
-
-            // Obtener el valor de la celda (select/input/text)
-            if (cell.querySelector('select')) {
-                value = cell.querySelector('select').value;
-            } else if (cell.querySelector('input')) {
-                value = cell.querySelector('input').value;
-            } else {
-                value = cell.innerText;
-            }
-
             const columnName = headers[j];
 
-            // Aplicar la conversión de departamento si es necesario
+            // a) Obtener el valor crudo sin espacios
+            let rawValue = "";
+            if (cell.querySelector('select')) {
+                rawValue = cell.querySelector('select').value.trim();
+            } else if (cell.querySelector('input')) {
+                rawValue = cell.querySelector('input').value.trim();
+            } else {
+                rawValue = cell.innerText.trim();
+            }
+
+            let finalValue = rawValue; 
+
+            // b) Mapeo de departamento si coincide con el diccionario
             if (columnName === "DEPARTAMENTO" && departmentMap[departamento]) {
-                value = departmentMap[departamento];
+                finalValue = departmentMap[departamento];
             }
 
-            // Guardar el valor de "Notas" para verificar más adelante
+            // c) Guardar “NOTAS” en minúsculas, por si es "sin notas"
             if (columnName === "NOTAS") {
-                cellNotesValue = value.trim().toLowerCase();
+                cellNotesValue = rawValue.toLowerCase();
             }
 
-            // Limpiar valores numéricos de "0"
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", 
-                 "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                parseFloat(value) === 0
-            ) {
-                value = ''; // Dejar vacío si el valor es 0.00
+            // d) Si es columna de días (LU..DO)
+            if (dayColumns.includes(columnName)) {
+                // Traducir “F”->“FINJ”, “TE”->“HE2”, etc.
+                const translated = translateValue(rawValue);
+                // Si traducido es exactamente “1”, dejar vacío
+                finalValue = (translated === "1") ? "" : translated;
+            }
+            // e) Si es columna numérica
+            else if (numericColumns.includes(columnName)) {
+                // 1) Traducir (p.ej. “4TE” -> “4HE2”)
+                const translated = translateValue(rawValue);
+                // 2) Extraer la parte numérica
+                const match = translated.match(/\d+(\.\d+)?/);
+                if (match) {
+                    const numVal = parseFloat(match[0]);
+                    // Si es un número distinto de 0, guardarlo como tipo Number
+                    if (!isNaN(numVal) && numVal !== 0) {
+                        finalValue = numVal;
+                    } else {
+                        finalValue = "";
+                    }
+                } else {
+                    finalValue = "";
+                }
+            }
+            // f) Para otras columnas, simplemente traducir (F->FINJ, TE->HE2, etc.)
+            else {
+                finalValue = translateValue(rawValue);
             }
 
-            // Traducir valores especiales (F->FINJ, TE->HE2, eliminar ceros innecesarios)
-            value = translateValue(value);
+            // g) Convertir “cadenas vacías” a null para que Excel las trate como celdas vacías
+            if (finalValue === "") {
+                finalValue = null;
+            }
 
-            // Verificar si la fila debe incluirse en el reporte
-            if (
-                ["LU", "MA", "MI", "JU", "VI", "SA", "DO"].includes(columnName) &&
-                value !== "1"
-            ) {
+            // h) Lógica para determinar si se incluye la fila (usa rawValue)
+            //    - Si es un día y rawValue != "1", hay incidencia
+            if (dayColumns.includes(columnName) && rawValue !== "1") {
+                includeRow = true;
+            }
+            //    - PRIMA DOMINICAL == "1"
+            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
+                includeRow = true;
+            }
+            //    - Columna numérica con valor numérico
+            if (numericColumns.includes(columnName) && finalValue !== null) {
                 includeRow = true;
             }
 
-            if (columnName === "PRIMA DOMINICAL" && value === "1") {
-                includeRow = true;
-            }
-
-            if (
-                ["COMPENSACIÓN", "COMISIÓN", "BONO PRODUCTIVIDAD", "APOYO TRANSPORTE", 
-                 "DESCUENTO PRÉSTAMO INVENTARIO", "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"].includes(columnName) &&
-                value !== ""
-            ) {
-                includeRow = true;
-            }
-
-            rowData.push(value);
+            // i) Agregar finalValue a la fila
+            rowData.push(finalValue);
         }
 
-        // Incluir la fila si "Notas" es diferente de "sin notas"
+        // 6. Incluir la fila si NOTAS no es "sin notas"
         if (cellNotesValue !== "sin notas") {
             includeRow = true;
         }
 
-        // Agregar la fila al reporte si cumple con las condiciones
+        // 7. Agregar la fila al reporte si se cumple la condición
         if (includeRow) {
             data.push(rowData);
         }
     }
 
-    // Generar el archivo Excel
+    // 8. Generar el archivo Excel
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias EYE');
-
-    // Descargar el archivo Excel
     XLSX.writeFile(wb, 'solo_incidencias_eye.xlsx');
 }
 
