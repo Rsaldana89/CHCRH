@@ -30,7 +30,7 @@
         "departments": ["Solo departamentos que empiezan con EYE"]
       },
       "jefefinanzas": {
-        "departments": ["PANADERIA", "MANTENIMIENTO"]
+        "departments": ["PANADERIA", "MANTENIMIENTO", "EMPAQUE GRANOS"]
       },
       "jefecedis": {
         "departments": ["CEDIS"]
