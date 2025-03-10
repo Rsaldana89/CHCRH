@@ -24,7 +24,7 @@
     },
     "manager": {
       "managerSI": {
-        "departments": ["SISTEMAS"]
+        "departments": ["SISTEMAS", "CEDIS"]
       },
       "managerEYE": {
         "departments": ["Solo departamentos que empiezan con EYE"]
@@ -48,7 +48,7 @@
           "INSURGENTES", "GEO PLAZAS", "SAUCES", "SAUCES II", "EL SOL",
           "EL TINTERO", "TINTERO II", "EXHACIENDA EL TINTERO", "CARRILLO", "PUERTA NAVARRA", "PLAZA VERONA",
           "JARDINES DE LA HACIENDA", "LA GLORIA", "ENSUEÑO", "CAMPO MILITAR",
-          "SANTA MARIA MAGDALENA"
+          "SANTA MARIA MAGDALENA", "SUPERVISION 2"
       ]
       },
       "supervision2": {
@@ -58,7 +58,7 @@
           "REAL SOLARE", "EL MIRADOR", "MILENIO", "MIRANDA", "NIÑOS HEROES",
           "EL REFUGIO", "EL REFUGIO II", "REFUGIO III", "LA PRADERA I",
           "LA PRADERA II", "ZAKIA", "ZIBATA", "LOS HUERTOS",
-          "LOMAS DEL MARQUES", "SAN ROQUE", "JACAL", "TECNOLOGICO"
+          "LOMAS DEL MARQUES", "SAN ROQUE", "JACAL", "TECNOLOGICO", "SUPERVISION 1"
       ]
       },
       "supervision3": {
@@ -69,8 +69,8 @@
           "SAN MIGUEL DE ALLENDE", "SAN MIGUEL DE ALLENDE II",
           "SAN MIGUEL DE ALLENDE III", "LOARCA", "PASEOS DE SAN MIGUEL",
           "REAL DE LA LOMA", "VALLE DE SANTIAGO", "CIUDAD DEL SOL",
-          "CIUDAD DEL SOL II", "PLAZA PALMARES", "SAN PABLO", "SOMBRERETE", "PLAZA DE LA NACION",
-          "ALCANFORES"
+          "CIUDAD DEL SOL II", "PLAZA PALMARES", "SAN PABLO", "SOMBRERETE", "PLAZA DE LA NACION", 
+          "ALCANFORES", "SUPERVISION 3"
       ]
       },
       "supervision4": {
@@ -80,8 +80,13 @@
           "PLAZA CANDILES", "LOS OLVERA", "VISTA REAL", "REAL DEL BOSQUE",
           "TEJEDA", "TEJEDA II", "SANTUARIOS", "PUEBLITO", "PIRAMIDES",
           "FUENTES DE BALVANERA", "PLAZAS DEL SOL", "SAN JUAN DE LETRAN", "LOMAS CALLE 27",
-          "AV CIMATARIO", "MERCADO DE ABASTOS"
+          "AV CIMATARIO", "MERCADO DE ABASTOS", "SUPERVISION 4"
       ]
+      },
+      "supervision5": {
+        "departments": [
+            "SUPERVISION 5"
+        ]
       },
       "eyemanager": {
         "departments": ["EYE ADMINISTRACION"]
