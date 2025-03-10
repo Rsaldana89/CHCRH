@@ -903,7 +903,7 @@ thead th:hover::after {
 }
 
 .table-container {
-    max-height: 800px; /* Ajusta la altura según tus necesidades */
+    max-height: 700px; /* Ajusta la altura según tus necesidades */
     overflow-y: auto; /* Habilita el desplazamiento vertical */
     overflow-x: auto; /* Habilita el desplazamiento horizontal si es necesario */
 }
