@@ -1452,23 +1452,34 @@ function SoloIncidenciasEYE() {
 }
 
 
-// Función para traducir los valores de "TE" a "HE2" y "F" a "FINJ"
+// Función para traducir los valores de "TE" a "HE2", "F" a "FINJ" y "M" a "MINJ"
 function translateValue(value) {
     let result = value;
 
-    // Traducción dinámica de "F" a "FINJ"
-    result = result.replace(/\b(\d*(?:\.\d+)?)F\b/g, function(match, p1) {
-        let number = p1 || '1'; // Si no hay número, asumimos '1'
-        return number + 'FINJ';
-    });
+    // Traducción específica: "0.5TE" -> ".3HE2"
+    if (result === '0.5TE') {
+        result = '.3HE2';
+    } else {
+        // Traducción dinámica de "F" a "FINJ"
+        result = result.replace(/\b(\d*(?:\.\d+)?)F\b/g, function(match, p1) {
+            let number = p1 || '1'; // Si no hay número, asumimos '1'
+            return number + 'FINJ';
+        });
 
-    // Traducción dinámica de "TE" a "HE2"
-    result = result.replace(/\b(\d*(?:\.\d+)?)TE\b/g, function(match, p1) {
-        let number = p1 || '1'; // Si no hay número, asumimos '1'
-        return number + 'HE2';
-    });
+        // Traducción dinámica de "TE" a "HE2"
+        result = result.replace(/\b(\d*(?:\.\d+)?)TE\b/g, function(match, p1) {
+            let number = p1 || '1'; // Si no hay número, asumimos '1'
+            return number + 'HE2';
+        });
 
-    let matchFH = result.match(/^(\d+(?:\.\d+)?)(FINJ|HE2)$/);
+        // Nueva traducción dinámica de "M" a "MINJ"
+        result = result.replace(/\b(\d*(?:\.\d+)?)M\b/g, function(match, p1) {
+            let number = p1 || '1'; // Si no hay número, asumimos '1'
+            return number + 'MINJ';
+        });
+    }
+
+    let matchFH = result.match(/^(\d+(?:\.\d+)?)(FINJ|HE2|MINJ)$/);
     if (matchFH) {
         let number = parseFloat(matchFH[1]);
         if (number === 0) {
@@ -1477,12 +1488,6 @@ function translateValue(value) {
     }
 
     // Si el resultado es "0DT", "0DFT", "0INC", "0VAC" o simplemente "0", también dejarlo vacío
-    // Patrones:
-    // ^0DT$   : Valor es exactamente "0DT"
-    // ^0DFT$  : Valor es exactamente "0DFT"
-    // ^0INC$  : Valor es exactamente "0INC"
-    // ^0VAC$  : Valor es exactamente "0VAC"
-    // ^0$     : Valor es exactamente "0"
     if (/^0(DT|DFT|INC|VAC)$/.test(result) || result === '0') {
         result = '';
     }
