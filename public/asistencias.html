@@ -244,7 +244,7 @@ function populateWeekAndYearSelectors() {
     let defaultWeek = currentWeek;
     let defaultYear = currentYear;
 
-    if (currentDay === 1 || currentDay === 2) {
+    if (currentDay === 0 || currentDay === 1 || currentDay === 2) {
         if (currentWeek === 1) {
             defaultWeek = 52;
             defaultYear = currentYear - 1;
