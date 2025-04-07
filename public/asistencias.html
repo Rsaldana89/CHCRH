@@ -165,9 +165,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Mostrar la fecha actual en el campo de fecha
             const today = new Date();
-            const formattedDate = today.toLocaleDateString(); // Esto usa el formato local
+            const formattedDate = today.toLocaleDateString();
             document.getElementById('current-date').textContent = formattedDate;
-
             document.getElementById('current-week').textContent = getCurrentWeek();
 
             // Cargar privilegios y luego cargar las asistencias con el filtro de departamentos
@@ -176,10 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(privileges => {
                     const userPrivileges = privileges.roles[data.role][data.username];
                     if (userPrivileges && userPrivileges.departments) {
-                        // Llamar a las funciones iniciales con el filtro de departamentos
+                        // Establecer selectores y mostrar tabla para semana/año actual (según lógica del selector)
                         populateWeekAndYearSelectors();
                         updateWeekRangeDisplay();
-                        loadCurrentWeekAttendance(userPrivileges.departments);
+                        updateAttendanceTable(); // <- carga según los valores visibles en los selectores
                     } else {
                         console.error('No se encontraron privilegios para este usuario.');
                     }
@@ -189,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => console.error('Error al obtener la información del usuario:', error));
     }
 });
+
 
 let allAttendanceData = [];
 
