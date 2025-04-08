@@ -383,6 +383,8 @@ function renderAttendanceTable(data) {
 
     const role = document.getElementById('user-role').textContent.trim();
 
+    isRowBeingEdited = false; // <- Reinicia el estado de edición
+
     // Filtrar empleados cuyo departamento no sea "Baja"
     const filteredData = data.filter(attendance => attendance.Departamento !== 'Baja');
 

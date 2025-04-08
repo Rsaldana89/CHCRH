@@ -43,51 +43,148 @@
       },
       "supervision1": {
         "departments": [
-          "VIÑEDOS", "SONTERRA", "CERRITO COLORADO", "CERRITO COLORADO II",
-          "CERRITO COLORADO III", "AV DE LA LUZ", "SATELITE", "SATELITE II",
-          "INSURGENTES", "GEO PLAZAS", "SAUCES", "SAUCES II", "EL SOL",
-          "TINTERO", "TINTERO II", "CARRILLO", "PUERTA NAVARRA", "PLAZA VERONA",
-          "JARDINES DE LA HACIENDA", "LA GLORIA", "ENSUEÑO", "CAMPO MILITAR",
-          "SANTA MARIA MAGDALENA", "SUPERVISION 2", "LOMA BONITA"
-      ]
-      },
-      "supervision2": {
-        "departments": [
-          "REAL DE SAN ISIDRO SJR", "PEDRO ESCOBEDO", "PEDRO ESCOBEDO II",
-          "HACIENDA LA CRUZ", "LOS HEROES", "RINCONES DEL MARQUES",
-          "REAL SOLARE", "EL MIRADOR", "MILENIO", "MIRANDA", "NIÑOS HEROES",
-          "EL REFUGIO", "EL REFUGIO II", "REFUGIO III", "LA PRADERA I",
-          "LA PRADERA II", "ZAKIA", "ZIBATA", "LOS HUERTOS", "VILLAS DEL REFUGIO",
-          "LOMAS DEL MARQUES", "SAN ROQUE", "JACAL", "TECNOLOGICO", "SUPERVISION 1"
-      ]
-      },
-      "supervision3": {
-        "departments": [
-          "PIE DE LA CUESTA", "PIE DE LA CUESTA II", "PLATON",
-          "VILLAS DE SANTIAGO", "PASEOS DEL PEDREGAL", "PLAZA BELEN",
-          "ATELIER", "SAN ISIDRO", "JURIQUILLA", "JURIQUILLA II",
-          "SAN MIGUEL DE ALLENDE", "SAN MIGUEL DE ALLENDE II",
-          "SAN MIGUEL DE ALLENDE III", "LOARCA", "PASEOS DE SAN MIGUEL",
-          "REAL DE LA LOMA", "VALLE DE SANTIAGO", "CIUDAD DEL SOL",
-          "CIUDAD DEL SOL II", "PLAZA PALMARES", "SAN PABLO", "SOMBRERETE", "PLAZA NACIONES", 
-          "ALCANFORES", "SUPERVISION 3"
-      ]
-      },
-      "supervision4": {
-        "departments": [
-          "PRESIDENTES", "REFORMA AGRARIA", "ANDADORES", "VALLE DIAMANTE",
-          "PROLONGACION PASTEUR", "CANDILES", "CANDILES II", "CANDILES III",
-          "PLAZA CANDILES", "LOS OLVERA", "VISTA REAL", "REAL DEL BOSQUE",
-          "TEJEDA", "TEJEDA II", "SANTUARIOS", "PUEBLITO", "PIRAMIDES",
-          "FUENTES DE BALVANERA", "PLAZAS DEL SOL", "SAN JUAN DE LETRAN", "LA NEGRETA", "LOMAS CALLE 27",
-          "AV CIMATARIO", "MERCADO DE ABASTOS", "SUPERVISION 4"
-      ]
-      },
-      "supervision5": {
-        "departments": [
-            "SUPERVISION 5"
+          "AV DE LA LUZ",
+          "CAMPO MILITAR",
+          "CARRILLO",
+          "CERRITO COLORADO",
+          "CERRITO COLORADO II",
+          "CERRITO COLORADO III",
+          "EL SOL",
+          "ENSUEÑO",
+          "GEO PLAZAS",
+          "INSURGENTES",
+          "JARDINES DE LA HACIENDA",
+          "LA GLORIA",
+          "LOMA BONITA",
+          "PLAZA VERONA",
+          "PUERTA NAVARRA",
+          "SAUCES",
+          "SAUCES II",
+          "SANTA MARIA MAGDALENA",
+          "SATELITE",
+          "SATELITE II",
+          "SONTERRA",
+          "SUPERVISION 2",
+          "TINTERO",
+          "TINTERO II",
+          "VIÑEDOS"
         ]
       },
+
+      "supervision2": {
+        "departments": [
+          "EL MIRADOR",
+          "EL REFUGIO",
+          "EL REFUGIO II",
+          "HACIENDA LA CRUZ",
+          "JACAL",
+          "LA PRADERA I",
+          "LA PRADERA II",
+          "LOMAS DEL MARQUES",
+          "LOS HEROES",
+          "LOS HUERTOS",
+          "MILENIO",
+          "MIRANDA",
+          "NIÑOS HEROES",
+          "PEDRO ESCOBEDO",
+          "PEDRO ESCOBEDO II",
+          "REAL DE SAN ISIDRO SJR",
+          "REAL SOLARE",
+          "REFUGIO III",
+          "RINCONES DEL MARQUES",
+          "SAN ROQUE",
+          "SUPERVISION 1",
+          "TECNOLOGICO",
+          "VILLAS DEL REFUGIO",
+          "ZAKIA",
+          "ZIBATA"
+        ]
+      },      
+
+      "supervision3": {
+        "departments": [
+          "ALCANFORES",
+          "ATELIER",
+          "CIUDAD DEL SOL",
+          "CIUDAD DEL SOL II",
+          "JURIQUILLA",
+          "JURIQUILLA II",
+          "LOARCA",
+          "PASEOS DE SAN MIGUEL",
+          "PASEOS DEL PEDREGAL",
+          "PIE DE LA CUESTA",
+          "PIE DE LA CUESTA II",
+          "PLAZA BELEN",
+          "PLAZA NACIONES",
+          "PLAZA PALMARES",
+          "PLATON",
+          "REAL DE LA LOMA",
+          "SAN ISIDRO",
+          "SAN MIGUEL DE ALLENDE",
+          "SAN MIGUEL DE ALLENDE II",
+          "SAN MIGUEL DE ALLENDE III",
+          "SAN PABLO",
+          "SOMBRERETE",
+          "SUPERVISION 3",
+          "VALLE DE SANTIAGO",
+          "VILLAS DE SANTIAGO"
+        ]
+      },
+
+      "supervision4": {
+        "departments": [
+          "ANDADORES",
+          "AV CIMATARIO",
+          "CANDILES",
+          "CANDILES II",
+          "CANDILES III",
+          "EL PUEBLITO",
+          "FUENTES DE BALVANERA",
+          "LA NEGRETA",
+          "LOMAS CALLE 27",
+          "LOS OLVERA",
+          "MERCADO DE ABASTOS",
+          "PIRAMIDES",
+          "PLAZA CANDILES",
+          "PLAZAS DEL SOL",
+          "PRESIDENTES",
+          "PROLONGACION PASTEUR",
+          "REAL DEL BOSQUE",
+          "REFORMA AGRARIA",
+          "SAN JUAN DE LETRAN",
+          "SANTUARIOS",
+          "SUPERVISION 4",
+          "TEJEDA",
+          "TEJEDA II",
+          "VALLE DIAMANTE",
+          "VISTA REAL"
+        ]
+      },
+
+      "supervision5": {
+        "departments": [
+          "ALCANFORES",
+          "AV CIMATARIO",
+          "CAMPO MILITAR",
+          "EL MIRADOR",
+          "ENSUEÑO",
+          "JACAL",
+          "JARDINES DE LA HACIENDA",
+          "LA GLORIA",
+          "LOMA BONITA",
+          "LOMAS DEL MARQUES",
+          "MILENIO",
+          "PEDRO ESCOBEDO",
+          "PEDRO ESCOBEDO II",
+          "REAL DE SAN ISIDRO SJR",
+          "SAN PABLO",
+          "SAN ROQUE",
+          "SANTA MARIA MAGDALENA",
+          "SUPERVISION 5",
+          "TECNOLOGICO"
+        ]
+      },
+
       "eyemanager": {
         "departments": ["EYE ADMINISTRACION"]
       },
