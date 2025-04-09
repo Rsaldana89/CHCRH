@@ -12,7 +12,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.33 Beta</span> <!-- Agregamos la versión aquí -->
+            <span class="version-info">Versión 1.34 Beta</span> <!-- Agregamos la versión aquí -->
         </h1>
         <!-- Barra de Herramientas -->
         <div class="toolbar">
@@ -227,14 +227,28 @@ function searchVacation() {
     const searchQuery = document.getElementById('vacation-search-input').value.toLowerCase();
     const selectedDepartment = document.getElementById('vacation-department-filter').value;
 
+    const normalizedSearch = searchQuery.padStart(5, '0');
+
     filteredData = personalData.filter(emp => {
-        const matchesSearchQuery = emp.full_name.toLowerCase().includes(searchQuery) || emp.employee_number.toString().includes(searchQuery);
+        const fullName = emp.full_name.toLowerCase();
+        const empNumberStr = emp.employee_number.toString();
+        const empNumberPadded = empNumberStr.padStart(5, '0');
+
+        const matchesSearchQuery =
+            fullName.includes(searchQuery) ||
+            empNumberStr.includes(searchQuery) ||
+            empNumberPadded.includes(searchQuery) ||
+            empNumberStr.includes(normalizedSearch) ||
+            empNumberPadded.includes(normalizedSearch);
+
         const matchesDepartment = !selectedDepartment || emp.department_name === selectedDepartment;
+
         return matchesSearchQuery && matchesDepartment;
     });
 
     renderVacationTable(filteredData);
 }
+
 
 function renderVacationTable(data) {
     const tbody = document.querySelector('#vacation-table tbody');

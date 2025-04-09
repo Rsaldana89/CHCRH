@@ -11,7 +11,7 @@
         <h1>
             <img src="logochc.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.33 Beta </span>
+            <span class="version-info">Versión 1.34 Beta </span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -540,35 +540,27 @@ function enableEdit(inputElement) {
     });
 }
 
-// Función para alternar entre editar y guardar
 function toggleEdit(button) {
     const row = button.closest('tr');
     const inputs = row.querySelectorAll('input, select');
     const isEditing = button.textContent === 'Guardar';
 
-    // Verificar si ya hay una fila en edición
     if (!isEditing && isRowBeingEdited) {
         alert('Solo puedes editar una fila a la vez. Por favor, guarda los cambios antes de editar otra fila.');
         return;
     }
 
-    // Obtén la semana y el año seleccionados
     const selectedWeek = parseInt(document.getElementById('week-selector').value);
     const selectedYear = parseInt(document.getElementById('year-selector').value);
 
-    // Obtén la semana y el año actual
     const now = new Date();
     const currentWeek = getCurrentWeek();
     const currentYear = now.getFullYear();
 
-    // Verifica el rol del usuario
     const userRole = document.getElementById('user-role').textContent.trim();
-
-    // Cálculo de 72 horas y permisos de edición
     const startOfCurrentWeek = getDateOfISOWeek(currentWeek, currentYear);
     const endOf72Hours = new Date(startOfCurrentWeek.getTime() + (72 * 60 * 60 * 1000));
 
-    // Permitir edición si es admin o si estamos dentro de las 72h de la semana actual para editar la anterior
     if (
         userRole !== 'admin' &&
         !isEditing &&
@@ -581,10 +573,7 @@ function toggleEdit(button) {
         return;
     }
 
-    // Si estamos en modo "Guardar"
     if (isEditing) {
-        console.log('Guardando cambios...');
-
         const employeeNumber = row.cells[0].textContent.trim();
         const LUNES = row.querySelector('select[name="LUNES"]').value;
         const MARTES = row.querySelector('select[name="MARTES"]').value;
@@ -623,51 +612,59 @@ function toggleEdit(button) {
         };
 
         fetch(`/admin/attendances/${employeeNumber}/${selectedWeek}/${selectedYear}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(updatedData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Datos de la respuesta:', data);
+    method: 'PUT',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify(updatedData)
+})
+.then(response => {
+    if (response.status === 401) {
+        alert('Hubo un error al guardar los datos. Inicia sesión nuevamente.');
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+        return null;
+    }
+    return response.json();
+})
+.then(data => {
+    if (!data) return;
 
-            if (data.success) {
-                alert('Cambios guardados correctamente.');
+    const currentSearch = document.getElementById('search-input').value;
 
-                // 1. Guardar la búsqueda actual
-                const currentSearch = document.getElementById('search-input').value;
-
-                // 2. Recargar la tabla
-                updateAttendanceTable();
-
-                // 3. Esperar un poco, reponer la búsqueda y llamar a searchAttendance()
-                setTimeout(() => {
-                    document.getElementById('search-input').value = currentSearch;
-                    if (currentSearch.trim() !== "") {
-                        searchAttendance();
-                    }
-                }, 600);
-
-            } else {
-                alert('Hubo un error al guardar los cambios.');
+    if (data.success) {
+        alert('Cambios guardados correctamente.');
+        updateAttendanceTable();
+        setTimeout(() => {
+            document.getElementById('search-input').value = currentSearch;
+            if (currentSearch.trim() !== "") {
+                searchAttendance();
             }
-        })
-        .catch(error => {
-            console.error('Error al actualizar los datos:', error);
-            alert('Hubo un error al guardar los cambios.');
-        });
+        }, 600);
+    } else {
+        alert('Hubo un error al guardar los datos. Inicia sesión nuevamente.');
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+    }
+})
+.catch(error => {
+    console.error('Error al actualizar los datos:', error);
+    alert('Hubo un error al guardar los datos. Inicia sesión nuevamente.');
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+});
+
 
         inputs.forEach(input => input.disabled = true);
         button.textContent = 'Editar';
-        isRowBeingEdited = false; 
+        isRowBeingEdited = false;
+       
     } else {
-        // Modo "Editar"
         inputs.forEach(input => input.disabled = false);
         button.textContent = 'Guardar';
-        isRowBeingEdited = true; 
+        isRowBeingEdited = true;
+        
     }
 }
 
