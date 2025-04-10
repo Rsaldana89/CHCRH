@@ -642,25 +642,49 @@ function toggleEdit(button) {
     console.log('Datos de la respuesta:', data);
 
     if (data.success) {
-        alert('Cambios guardados correctamente.');
+    alert('Cambios guardados correctamente.');
 
-        // 1. Guardar la búsqueda actual
-        const currentSearch = document.getElementById('search-input').value;
+    const employeeNumber = row.cells[0].textContent.trim();
 
-        // 2. Recargar la tabla
-        //updateAttendanceTable();
-
-        // 3. Esperar un poco, reponer la búsqueda y llamar a searchAttendance()
-        setTimeout(() => {
-            document.getElementById('search-input').value = currentSearch;
-            if (currentSearch.trim() !== "") {
-                searchAttendance();
-            }
-        }, 600);
-
-    } else {
-        alert('Hubo un error al guardar los cambios.');
+    // 1. Actualizar el registro correspondiente en allAttendanceData
+    const record = allAttendanceData.find(e => e['Codigo trabajador'].toString().padStart(5, '0') === employeeNumber);
+    if (record) {
+        record.LUNES = LUNES;
+        record.MARTES = MARTES;
+        record.MIERCOLES = MIERCOLES;
+        record.JUEVES = JUEVES;
+        record.VIERNES = VIERNES;
+        record.SABADO = SABADO;
+        record.DOMINGO = DOMINGO;
+        record['Prima dominical'] = PRIMA_DOMINICAL;
+        record.Compensacion = COMPENSACION;
+        record.Comision = COMISION;
+        record['Bono productividad'] = BONO_PRODUCTIVIDAD;
+        record['Apoyo transporte'] = APOYO_TRANSPORTE;
+        record['Descuento prestamo inventario'] = DESCUENTO_PRESTAMO_INVENTARIO;
+        record['Bono recomendacion'] = BONO_RECOMENDACION;
+        record['Descuento efectivo'] = DESCUENTO_EFECTIVO;
+        record.Notas = NOTAS;
     }
+
+    // 2. Obtener la búsqueda actual
+    const currentSearch = document.getElementById('search-input').value.trim();
+
+    // 3. Volver a renderizar la tabla (filtrada si hay búsqueda activa)
+    if (currentSearch !== "") {
+        searchAttendance(); // Aplica filtro de búsqueda
+    } else {
+        renderAttendanceTable(allAttendanceData); // Muestra todo
+    }
+
+    // 4. Salir del modo edición visualmente
+    inputs.forEach(input => input.disabled = true);
+    button.textContent = 'Editar';
+    isRowBeingEdited = false;
+
+} else {
+    alert('Hubo un error al guardar los cambios.');
+}
 })
 .catch(error => {
     console.error('Error al actualizar los datos:', error);
@@ -669,30 +693,13 @@ function toggleEdit(button) {
     window.location.href = '/login.html';
 });
 
-        inputs.forEach(input => input.disabled = true);
-        button.textContent = 'Editar';
-        isRowBeingEdited = false; 
-    } else {
-        // Modo "Editar"
-        inputs.forEach(input => input.disabled = false);
-        button.textContent = 'Guardar';
-        isRowBeingEdited = true; 
-    }
+// Modo "Editar"
+} else {
+    inputs.forEach(input => input.disabled = false);
+    button.textContent = 'Guardar';
+    isRowBeingEdited = true;
 }
-
-
-// Agregar funcionalidad para editar la fila completa al hacer doble clic
-//document.querySelector('#attendance-table').addEventListener('dblclick', function (event) {
-  //  const targetRow = event.target.closest('tr');
- //   if (!targetRow) return;
-
- //   // Buscar el botón "Editar" en la fila
- //   const editButton = targetRow.querySelector('button');
- //   if (editButton && editButton.textContent === 'Editar') {
- //       editButton.click(); // Simula el clic en el botón "Editar"
-//    }
-//});
-
+}
 
 
 // Funciones de ayuda para obtener la semana actual y la fecha de inicio de una semana ISO
