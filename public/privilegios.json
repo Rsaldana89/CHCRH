@@ -43,6 +43,7 @@
       },
       "supervision1": {
         "departments": [
+          "MERCADO DE ABASTOS",
           "AV DE LA LUZ",
           "CAMPO MILITAR",
           "CARRILLO",
@@ -56,8 +57,10 @@
           "JARDINES DE LA HACIENDA",
           "LA GLORIA",
           "LOMA BONITA",
+          "PLAZAS DEL SOL",
           "PLAZA VERONA",
           "PUERTA NAVARRA",
+          "SAN JUAN DE LETRAN",
           "SAUCES",
           "SAUCES II",
           "SANTA MARIA MAGDALENA",
@@ -96,7 +99,6 @@
 
       "supervision3": {
         "departments": [
-          "ALCANFORES",
           "ATELIER",
           "CIUDAD DEL SOL",
           "CIUDAD DEL SOL II",
@@ -110,13 +112,11 @@
           "PLAZA BELEN",
           "PLAZA NACIONES",
           "PLAZA PALMARES",
-          "PLATON",
           "REAL DE LA LOMA",
           "SAN ISIDRO",
           "SAN MIGUEL DE ALLENDE",
           "SAN MIGUEL DE ALLENDE II",
           "SAN MIGUEL DE ALLENDE III",
-          "SAN PABLO",
           "SOMBRERETE",
           "SUPERVISION 3",
           "VALLE DE SANTIAGO",
@@ -127,7 +127,6 @@
       "supervision4": {
         "departments": [
           "ANDADORES",
-          "AV CIMATARIO",
           "CANDILES",
           "CANDILES II",
           "CANDILES III",
@@ -136,15 +135,12 @@
           "LA NEGRETA",
           "LOMAS CALLE 27",
           "LOS OLVERA",
-          "MERCADO DE ABASTOS",
           "PIRAMIDES",
           "PLAZA CANDILES",
-          "PLAZAS DEL SOL",
           "PRESIDENTES",
           "PROLONGACION PASTEUR",
           "REAL DEL BOSQUE",
           "REFORMA AGRARIA",
-          "SAN JUAN DE LETRAN",
           "SANTUARIOS",
           "SUPERVISION 4",
           "TEJEDA",
@@ -164,7 +160,6 @@
           "JACAL",
           "JARDINES DE LA HACIENDA",
           "LA GLORIA",
-          "LOMA BONITA",
           "LOMAS DEL MARQUES",
           "MILENIO",
           "PEDRO ESCOBEDO",
