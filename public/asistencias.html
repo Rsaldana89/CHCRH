@@ -9,9 +9,9 @@
 <body>
     <div class="container">
         <h1>
-            <img src="logochc.png" alt="Logo" class="logo">
+            <img src="Logoheader.png" alt="Logo" class="logo">
             CHC BITACORA-RH
-            <span class="version-info">Versión 1.35 </span>
+            <span class="version-info">Versión 1.37 </span>
         </h1>
         <div class="toolbar">
             <a href="asistencias.html">
@@ -1104,7 +1104,7 @@ function SoloIncidenciasCompaq() {
     }
     data.push(headers);
 
-    // 2. Definir las columnas de días y las numéricas
+    // 2. Definir columnas de días y numéricas
     const dayColumns = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
     const numericColumns = [
         "TOTAL EXTRA", "DT", "DFT", "FALTA", "INC", "VAC",
@@ -1113,19 +1113,17 @@ function SoloIncidenciasCompaq() {
         "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"
     ];
 
-    // 3. Recorrer cada fila de datos
+    // 3. Recorrer filas de datos
     for (let i = 1; i < table.rows.length; i++) {
         let rowData = [];
         let includeRow = false;
         let cellNotesValue = "";
 
-        // 4. Recorrer columnas (excepto la última: "Acciones")
         for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
             const cell = table.rows[i].cells[j];
             const columnName = headers[j];
-
-            // a) Obtener el valor crudo (select/input/text) sin espacios
             let rawValue = "";
+
             if (cell.querySelector('select')) {
                 rawValue = cell.querySelector('select').value.trim();
             } else if (cell.querySelector('input')) {
@@ -1134,96 +1132,64 @@ function SoloIncidenciasCompaq() {
                 rawValue = cell.innerText.trim();
             }
 
-            // b) Inicializar finalValue con el valor crudo
             let finalValue = rawValue;
 
-            // c) Guardar "NOTAS" en minúsculas, para ver si es "sin notas"
             if (columnName === "NOTAS") {
                 cellNotesValue = rawValue.toLowerCase();
             }
 
-            // d) Si es una de las columnas de días (LU..DO)...
             if (dayColumns.includes(columnName)) {
-                // Usamos la traducción (F->FINJ, TE->HE2, etc.)
                 const translated = translateValue(rawValue);
-                // Si es exactamente "1", lo ponemos como vacío
-                finalValue = (translated === "1") ? "" : translated;
-            }
-            // e) Si es una columna numérica...
-            else if (numericColumns.includes(columnName)) {
-                // 1) Traducir por si viene "4TE" -> "4HE2"
+                finalValue = (translated === "1") ? null : translated;
+            } else if (numericColumns.includes(columnName)) {
                 const translated = translateValue(rawValue);
-                // 2) Extraer dígitos de la cadena traducida
                 const match = translated.match(/\d+(\.\d+)?/);
                 if (match) {
                     const numVal = parseFloat(match[0]);
-                    // Si es 0 o no es válido, se queda vacío. Si no, es un número.
-                    if (!isNaN(numVal) && numVal !== 0) {
-                        finalValue = numVal; 
-                    } else {
-                        finalValue = "";
-                    }
+                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
                 } else {
-                    finalValue = "";
+                    finalValue = null;
                 }
-            }
-            // f) Para otras columnas, solo traducimos
-            else {
+            } else if (columnName === "PRIMA DOMINICAL") {
+                const numVal = parseFloat(rawValue);
+                finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+            } else {
                 finalValue = translateValue(rawValue);
+                if (finalValue === "") finalValue = null;
             }
 
-            // g) Al final, si finalValue quedó como cadena vacía, lo convertimos en null.
-            //    Esto hace que Excel trate la celda como realmente "vacía" y no como texto.
-            if (finalValue === "") {
-                finalValue = null;
-            }
-
-            // h) Revisar si la fila debe incluirse, usando el valor original (rawValue)
-            //    - Si es columna de día y rawValue != "1", incluimos
-            if (dayColumns.includes(columnName) && rawValue !== "1") {
-                includeRow = true;
-            }
-            //    - PRIMA DOMINICAL == "1"
-            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
-                includeRow = true;
-            }
-            //    - Si es columna numérica y finalValue no es null, hay un valor numérico
-            if (numericColumns.includes(columnName) && finalValue !== null) {
+            // Evaluar si se incluye la fila
+            if ((dayColumns.includes(columnName) && rawValue !== "1") ||
+                (columnName === "PRIMA DOMINICAL" && rawValue === "1") ||
+                (numericColumns.includes(columnName) && finalValue !== null)) {
                 includeRow = true;
             }
 
-            // i) Agregar finalValue (puede ser null, string o number) a la fila
             rowData.push(finalValue);
         }
 
-        // 5. Incluir la fila si NOTAS no es "sin notas"
         if (cellNotesValue !== "sin notas") {
             includeRow = true;
         }
 
-        // 6. Agregar la fila si se debe incluir
         if (includeRow) {
             data.push(rowData);
         }
     }
 
-    // 7. Crear y descargar el archivo Excel
     const ws = XLSX.utils.aoa_to_sheet(data);
-    
-    // OBS: XLSX interpretará null como celdas vacías (no cadenas vacías).
-    // Y los valores numéricos (tipo Number) los marcará como celdas numéricas en Excel.
-    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias Compaq');
     XLSX.writeFile(wb, 'solo_incidencias_compaq.xlsx');
 }
+
 
 function SoloIncidenciasCHC() {
     const table = document.getElementById('attendance-table');
     let data = [];
     let headers = [];
 
-    // 1. Obtener encabezados, sin la última columna ("Acciones")
+    // 1. Obtener encabezados (excepto la última columna: "Acciones")
     for (let j = 0; j < table.rows[0].cells.length; j++) {
         if (j !== table.rows[0].cells.length - 1) {
             headers.push(table.rows[0].cells[j].innerText.trim());
@@ -1231,7 +1197,7 @@ function SoloIncidenciasCHC() {
     }
     data.push(headers);
 
-    // 2. Definir columnas de días y columnas numéricas (igual que en tus otras funciones)
+    // 2. Definir columnas de días y columnas numéricas
     const dayColumns = ["LU", "MA", "MI", "JU", "VI", "SA", "DO"];
     const numericColumns = [
         "TOTAL EXTRA", "DT", "DFT", "FALTA", "INC", "VAC",
@@ -1240,25 +1206,22 @@ function SoloIncidenciasCHC() {
         "BONO RECOMENDACIÓN", "DESCUENTO EFECTIVO"
     ];
 
-    // 3. Recorrer las filas (saltando la de encabezados)
+    // 3. Recorrer filas
     for (let i = 1; i < table.rows.length; i++) {
-        // Verificar departamento: si inicia con "EYE" o "ELAB", se omite
         let departamento = table.rows[i].cells[2].innerText.trim();
         if (departamento.startsWith('EYE') || departamento.startsWith('ELAB')) {
-            continue; 
+            continue; // omitir filas EYE y ELAB
         }
 
         let rowData = [];
         let includeRow = false;
         let cellNotesValue = "";
 
-        // 4. Recorrer columnas de la fila (excepto la última: "Acciones")
         for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
             const cell = table.rows[i].cells[j];
             const columnName = headers[j];
-
-            // 4.1. Obtener valor crudo sin espacios
             let rawValue = "";
+
             if (cell.querySelector('select')) {
                 rawValue = cell.querySelector('select').value.trim();
             } else if (cell.querySelector('input')) {
@@ -1269,84 +1232,54 @@ function SoloIncidenciasCHC() {
 
             let finalValue = rawValue;
 
-            // 4.2. NOTAS: bajar a minúsculas para comprobar "sin notas"
             if (columnName === "NOTAS") {
                 cellNotesValue = rawValue.toLowerCase();
             }
 
-            // 4.3. Si es columna de días
             if (dayColumns.includes(columnName)) {
-                const translated = translateValue(rawValue); // e.g. "F"->"FINJ", "TE"->"HE2"
-                // Si queda "1", lo dejamos en blanco (null)
-                finalValue = (translated === "1") ? "" : translated;
-            }
-            // 4.4. Si es columna numérica
-            else if (numericColumns.includes(columnName)) {
-                // Traducir primero ("4TE" -> "4HE2", etc.)
                 const translated = translateValue(rawValue);
-                // Buscar dígitos
+                finalValue = (translated === "1") ? null : translated;
+            } else if (numericColumns.includes(columnName)) {
+                const translated = translateValue(rawValue);
                 const match = translated.match(/\d+(\.\d+)?/);
                 if (match) {
                     const numVal = parseFloat(match[0]);
-                    // Si es un número distinto de 0, guardamos numVal; si no, vacío
-                    if (!isNaN(numVal) && numVal !== 0) {
-                        finalValue = numVal; 
-                    } else {
-                        finalValue = "";
-                    }
+                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
                 } else {
-                    finalValue = "";
+                    finalValue = null;
                 }
-            }
-            // 4.5. Para otras columnas, solo traducir
-            else {
+            } else if (columnName === "PRIMA DOMINICAL") {
+                const numVal = parseFloat(rawValue);
+                finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+            } else {
                 finalValue = translateValue(rawValue);
+                if (finalValue === "") finalValue = null;
             }
 
-            // 4.6. Convertir cadena vacía a null (celdas realmente vacías)
-            if (finalValue === "") {
-                finalValue = null;
-            }
-
-            // 4.7. Lógica de inclusión (usa el valor original rawValue)
-            //      a) Si es día y no es "1"
-            if (dayColumns.includes(columnName) && rawValue !== "1") {
-                includeRow = true;
-            }
-            //      b) PRIMA DOMINICAL == "1"
-            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
-                includeRow = true;
-            }
-            //      c) Columna numérica y finalValue no es null => num
-            if (numericColumns.includes(columnName) && finalValue !== null) {
+            // Evaluar si se incluye esta fila
+            if ((dayColumns.includes(columnName) && rawValue !== "1") ||
+                (columnName === "PRIMA DOMINICAL" && rawValue === "1") ||
+                (numericColumns.includes(columnName) && finalValue !== null)) {
                 includeRow = true;
             }
 
-            // 4.8. Agregar finalValue a la fila
             rowData.push(finalValue);
         }
 
-        // 5. Incluir la fila si NOTAS != "sin notas"
         if (cellNotesValue !== "sin notas") {
             includeRow = true;
         }
 
-        // 6. Agregar fila si aplica
         if (includeRow) {
             data.push(rowData);
         }
     }
 
-    // 7. Crear y descargar el Excel
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias CHC');
     XLSX.writeFile(wb, 'solo_incidencias_chc.xlsx');
 }
-
-
-
-
 
 
 function SoloIncidenciasEYE() {
@@ -1383,22 +1316,20 @@ function SoloIncidenciasEYE() {
 
     // 4. Recorrer filas (saltando encabezados)
     for (let i = 1; i < table.rows.length; i++) {
-        // Verificar si el departamento inicia con "EYE" o "ELAB"
         let departamento = table.rows[i].cells[2].innerText.trim();
         if (!departamento.startsWith('EYE') && !departamento.startsWith('ELAB')) {
-            continue; // saltar esta fila
+            continue;
         }
 
         let rowData = [];
-        let includeRow = false; 
+        let includeRow = false;
         let cellNotesValue = "";
 
-        // 5. Recorrer columnas de la fila (excepto la última: Acciones)
         for (let j = 0; j < table.rows[i].cells.length - 1; j++) {
             let cell = table.rows[i].cells[j];
             const columnName = headers[j];
 
-            // a) Obtener el valor crudo sin espacios
+            // a) Obtener valor crudo
             let rawValue = "";
             if (cell.querySelector('select')) {
                 rawValue = cell.querySelector('select').value.trim();
@@ -1408,88 +1339,73 @@ function SoloIncidenciasEYE() {
                 rawValue = cell.innerText.trim();
             }
 
-            let finalValue = rawValue; 
+            let finalValue = rawValue;
 
-            // b) Mapeo de departamento si coincide con el diccionario
+            // b) Mapear departamento si aplica
             if (columnName === "DEPARTAMENTO" && departmentMap[departamento]) {
                 finalValue = departmentMap[departamento];
             }
 
-            // c) Guardar “NOTAS” en minúsculas, por si es "sin notas"
+            // c) Guardar valor de NOTAS en minúscula
             if (columnName === "NOTAS") {
                 cellNotesValue = rawValue.toLowerCase();
             }
 
-            // d) Si es columna de días (LU..DO)
+            // d) Días
             if (dayColumns.includes(columnName)) {
-                // Traducir “F”->“FINJ”, “TE”->“HE2”, etc.
                 const translated = translateValue(rawValue);
-                // Si traducido es exactamente “1”, dejar vacío
-                finalValue = (translated === "1") ? "" : translated;
+                finalValue = (translated === "1") ? null : translated;
             }
-            // e) Si es columna numérica
+
+            // e) Numéricas
             else if (numericColumns.includes(columnName)) {
-                // 1) Traducir (p.ej. “4TE” -> “4HE2”)
                 const translated = translateValue(rawValue);
-                // 2) Extraer la parte numérica
                 const match = translated.match(/\d+(\.\d+)?/);
                 if (match) {
                     const numVal = parseFloat(match[0]);
-                    // Si es un número distinto de 0, guardarlo como tipo Number
-                    if (!isNaN(numVal) && numVal !== 0) {
-                        finalValue = numVal;
-                    } else {
-                        finalValue = "";
-                    }
+                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
                 } else {
-                    finalValue = "";
+                    finalValue = null;
                 }
             }
-            // f) Para otras columnas, simplemente traducir (F->FINJ, TE->HE2, etc.)
+
+            // f) Prima Dominical (tratamiento especial)
+            else if (columnName === "PRIMA DOMINICAL") {
+                const numVal = parseFloat(rawValue);
+                finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+            }
+
+            // g) Otros campos: solo traducir
             else {
                 finalValue = translateValue(rawValue);
+                if (finalValue === "") finalValue = null;
             }
 
-            // g) Convertir “cadenas vacías” a null para que Excel las trate como celdas vacías
-            if (finalValue === "") {
-                finalValue = null;
-            }
-
-            // h) Lógica para determinar si se incluye la fila (usa rawValue)
-            //    - Si es un día y rawValue != "1", hay incidencia
-            if (dayColumns.includes(columnName) && rawValue !== "1") {
-                includeRow = true;
-            }
-            //    - PRIMA DOMINICAL == "1"
-            if (columnName === "PRIMA DOMINICAL" && rawValue === "1") {
-                includeRow = true;
-            }
-            //    - Columna numérica con valor numérico
-            if (numericColumns.includes(columnName) && finalValue !== null) {
+            // h) Incluir fila si hay incidencias
+            if ((dayColumns.includes(columnName) && rawValue !== "1") ||
+                (columnName === "PRIMA DOMINICAL" && rawValue === "1") ||
+                (numericColumns.includes(columnName) && finalValue !== null)) {
                 includeRow = true;
             }
 
-            // i) Agregar finalValue a la fila
             rowData.push(finalValue);
         }
 
-        // 6. Incluir la fila si NOTAS no es "sin notas"
         if (cellNotesValue !== "sin notas") {
             includeRow = true;
         }
 
-        // 7. Agregar la fila al reporte si se cumple la condición
         if (includeRow) {
             data.push(rowData);
         }
     }
 
-    // 8. Generar el archivo Excel
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Solo Incidencias EYE');
     XLSX.writeFile(wb, 'solo_incidencias_eye.xlsx');
 }
+
 
 
 // Función para traducir los valores de "TE" a "HE2", "F" a "FINJ" y "M" a "MINJ"

@@ -26,11 +26,12 @@
             text-align: center;
         }
 
-        .login-container img {
-            width: 80px;
-            height: auto;
-            margin-bottom: 20px; /* Espacio debajo del logo */
+        .login-container img:not(.logo-img) {
+         width: 80px;
+         height: auto;
+         margin-bottom: 20px;
         }
+
 
         .login-container h2 {
             font-size: 1.5rem; /* Tamaño de fuente del título */
@@ -133,12 +134,39 @@
                 font-size: 0.7rem;
             }
         }
+
+        .logo-img {
+    width: 140px;
+    height: auto;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 0 transparent;
+    opacity: 0;
+    animation: fadeIn 1s ease-in-out forwards;
+}
+
+.logo-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.5);
+}
+
+/* Animación al cargar */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
     </style>
 </head>
 <body>
     <div class="login-container">
         <!-- Logo de la empresa -->
-        <img src="logochc.png" alt="Logo de CHC">
+        <img src="Logoheader.png" alt="Logo de CHC" class="logo-img">
+
 
         <h2>Inicio de Sesión</h2>
 
@@ -173,7 +201,7 @@
         
         <!-- Recuadro de versión -->
         <div class="version-box">
-            Versión 1.35
+            Versión 1.37
         </div>
     </div>
 
