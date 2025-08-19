@@ -192,7 +192,18 @@
       },
       "eyecontrol": {
         "departments": ["EYE CONTROL PRODUCCION"]
+      },
+      "eyeconsultor": {
+        "departments": [
+          "EYE ADMINISTRACION",
+          "EYE TORTILLAS",
+          "EYE QUESOS FRESCOS",
+          "EYE CONVERSION 1ER TURNO",
+          "EYE CONVERSION 2DO TURNO",
+          "EYE CONTROL PRODUCCION"
+        ]
       }
+      
     }
   }
 }
