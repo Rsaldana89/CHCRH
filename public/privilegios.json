@@ -135,7 +135,6 @@
       "supervision4": {
         "departments": [
           "ANDADORES",
-          "BUROCRATA",
           "CANDILES",
           "CANDILES II",
           "CANDILES III",
@@ -165,6 +164,7 @@
         "departments": [
           "ALCANFORES",
           "AV CIMATARIO",
+          "BUROCRATA",
           "CAMPO MILITAR",
           "EL MIRADOR",
           "ENSUEÑO",
