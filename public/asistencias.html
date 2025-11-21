@@ -1142,13 +1142,33 @@ function SoloIncidenciasCompaq() {
                 const translated = translateValue(rawValue);
                 finalValue = (translated === "1") ? null : translated;
             } else if (numericColumns.includes(columnName)) {
-                const translated = translateValue(rawValue);
-                const match = translated.match(/\d+(\.\d+)?/);
-                if (match) {
-                    const numVal = parseFloat(match[0]);
-                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                /*
+                 * Para columnas numéricas usamos el valor numérico de la traducción.
+                 * El cálculo por defecto buscaba dígitos en la cadena traducida con
+                 * /\d+(\.\d+)?/, lo que no contempla valores que comienzan con un
+                 * punto (por ejemplo ".3HE2"). Además, en el caso de "TOTAL EXTRA"
+                 * queremos el valor de Tiempo Extra (TE) original, no el valor
+                 * convertido a HE2, ya que 0.5TE se traduce a .3HE2 pero debe
+                 * permanecer como 0.5 en la sumatoria. Por ello primero detectamos
+                 * si la columna es "TOTAL EXTRA"; si lo es y el valor bruto
+                 * contiene "TE", extraemos la parte numérica previa a "TE" y la
+                 * usamos como valor final. Si no contiene TE o es otra columna,
+                 * utilizamos un patrón que permite números con o sin cero inicial
+                 * (\d*\.?\d+) para obtener el número de la cadena traducida.
+                 */
+                if (columnName === "TOTAL EXTRA" && /TE$/.test(rawValue)) {
+                    // Extraer la cantidad de horas de TE (por ejemplo "0.5TE" -> 0.5; "2TE" -> 2)
+                    const teNum = parseFloat(rawValue.replace(/TE$/, '')) || 0;
+                    finalValue = !isNaN(teNum) && teNum !== 0 ? teNum : null;
                 } else {
-                    finalValue = null;
+                    const translated = translateValue(rawValue);
+                    const match = translated.match(/\d*\.?\d+/);
+                    if (match) {
+                        const numVal = parseFloat(match[0]);
+                        finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                    } else {
+                        finalValue = null;
+                    }
                 }
             } else if (columnName === "PRIMA DOMINICAL") {
                 const numVal = parseFloat(rawValue);
@@ -1240,13 +1260,28 @@ function SoloIncidenciasCHC() {
                 const translated = translateValue(rawValue);
                 finalValue = (translated === "1") ? null : translated;
             } else if (numericColumns.includes(columnName)) {
-                const translated = translateValue(rawValue);
-                const match = translated.match(/\d+(\.\d+)?/);
-                if (match) {
-                    const numVal = parseFloat(match[0]);
-                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                /*
+                 * Al convertir columnas numéricas a valores reales usamos la traducción
+                 * para obtener el número. El patrón original /\d+(\.\d+)?/ falla
+                 * en valores que comienzan con un punto (p.ej., ".3HE2" que proviene
+                 * de 0.5TE) y además "TOTAL EXTRA" debe conservar la cantidad de TE.
+                 * Si la columna es "TOTAL EXTRA" y el valor crudo termina en "TE",
+                 * extraemos la parte antes de "TE" como número ("0.5TE" -> 0.5).
+                 * En otros casos extraemos cualquier número incluyendo los que
+                 * empiezan con punto usando /\d*\.?\d+/.
+                 */
+                if (columnName === "TOTAL EXTRA" && /TE$/.test(rawValue)) {
+                    const teNum = parseFloat(rawValue.replace(/TE$/, '')) || 0;
+                    finalValue = !isNaN(teNum) && teNum !== 0 ? teNum : null;
                 } else {
-                    finalValue = null;
+                    const translated = translateValue(rawValue);
+                    const match = translated.match(/\d*\.?\d+/);
+                    if (match) {
+                        const numVal = parseFloat(match[0]);
+                        finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                    } else {
+                        finalValue = null;
+                    }
                 }
             } else if (columnName === "PRIMA DOMINICAL") {
                 const numVal = parseFloat(rawValue);
@@ -1359,13 +1394,25 @@ function SoloIncidenciasEYE() {
 
             // e) Numéricas
             else if (numericColumns.includes(columnName)) {
-                const translated = translateValue(rawValue);
-                const match = translated.match(/\d+(\.\d+)?/);
-                if (match) {
-                    const numVal = parseFloat(match[0]);
-                    finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                /*
+                 * Extracción numérica para columnas numéricas. Se necesita un patrón
+                 * más flexible que /\d+(\.\d+)?/ para valores que empiezan con
+                 * punto (como ".3HE2"). Además, "TOTAL EXTRA" debe usar el valor
+                 * original de TE antes de traducirse, por lo que si el valor crudo
+                 * termina con "TE" se extrae la parte numérica previa.
+                 */
+                if (columnName === "TOTAL EXTRA" && /TE$/.test(rawValue)) {
+                    const teNum = parseFloat(rawValue.replace(/TE$/, '')) || 0;
+                    finalValue = !isNaN(teNum) && teNum !== 0 ? teNum : null;
                 } else {
-                    finalValue = null;
+                    const translated = translateValue(rawValue);
+                    const match = translated.match(/\d*\.?\d+/);
+                    if (match) {
+                        const numVal = parseFloat(match[0]);
+                        finalValue = !isNaN(numVal) && numVal !== 0 ? numVal : null;
+                    } else {
+                        finalValue = null;
+                    }
                 }
             }
 
