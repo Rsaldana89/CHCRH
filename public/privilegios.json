@@ -51,6 +51,136 @@
       "userSI": {
         "departments": ["Todos"]
       },
+
+      "auxoperacion": {
+        "departments": [
+          "PANADERIA",
+          "MANTENIMIENTO",
+          "EMPAQUE GRANOS",
+
+          "MERCADO DE ABASTOS",
+          "AV DE LA LUZ",
+          "CARRILLO",
+          "CERRITO COLORADO",
+          "CERRITO COLORADO II",
+          "CERRITO COLORADO III",
+          "EL SOL",
+          "GEO PLAZAS",
+          "INSURGENTES",
+          "LOMA BONITA",
+          "PLAZAS DEL SOL",
+          "PLAZA VERONA",
+          "PUERTA NAVARRA",
+          "SAN JUAN DE LETRAN",
+          "SAUCES",
+          "SAUCES II",
+          "SATELITE",
+          "SATELITE II",
+          "SONTERRA",
+          "SUPERVISION 2",
+          "TINTERO",
+          "TINTERO II",
+          "VIÑEDOS",
+
+          "AV CORREGIDORA NTE",
+          "EL REFUGIO",
+          "EL REFUGIO II",
+          "HACIENDA LA CRUZ",
+          "LA PRADERA I",
+          "LA PRADERA II",
+          "LA POPULAR",
+          "LOS HEROES",
+          "LOS HUERTOS",
+          "MIRANDA",
+          "MENCHACA",
+          "NIÑOS HEROES",
+          "REAL SOLARE",
+          "PLATON",
+          "REFUGIO III",
+          "RINCONES DEL MARQUES",
+          "SUPERVISION 1",
+          "VILLAS DEL REFUGIO",
+          "ZAKIA",
+          "ZIBATA",
+          "XENTRIC ZIBATA",
+
+          "ATELIER",
+          "CIUDAD DEL SOL",
+          "CIUDAD DEL SOL II",
+          "JURIQUILLA",
+          "JURIQUILLA II",
+          "LOARCA",
+          "PASEOS DE SAN MIGUEL",
+          "PASEOS DEL PEDREGAL",
+          "PIE DE LA CUESTA",
+          "PIE DE LA CUESTA II",
+          "PLAZA BELEN",
+          "PLAZA GARIBALDI SMA",
+          "PLAZA NACIONES",
+          "PLAZA PALMARES",
+          "PRIVADA JURIQUILLA",
+          "REAL DE LA LOMA",
+          "SAN ISIDRO",
+          "SAN MIGUEL DE ALLENDE",
+          "SAN MIGUEL DE ALLENDE II",
+          "SAN MIGUEL DE ALLENDE III",
+          "SOMBRERETE",
+          "SUPERVISION 3",
+          "VALLE DE SANTIAGO",
+          "VILLAS DE SANTIAGO",
+
+          "ANDADORES",
+          "CANDILES",
+          "CANDILES II",
+          "CANDILES III",
+          "COLINAS DEL SOL",
+          "COLONIA CIMATARIO",
+          "EL PUEBLITO",
+          "EL CONDADO",
+          "FUENTES DE BALVANERA",
+          "LA NEGRETA",
+          "LOMAS CALLE 25",
+          "LOMAS CALLE 27",
+          "LOS OLVERA",
+          "PIRAMIDES",
+          "PLAZA CANDILES",
+          "PRESIDENTES",
+          "PROLONGACION PASTEUR",
+          "REAL DEL BOSQUE",
+          "REFORMA AGRARIA",
+          "SANTUARIOS",
+          "SUPERVISION 4",
+          "TEJEDA",
+          "TEJEDA II",
+          "VALLE DIAMANTE",
+          "VISTA REAL",
+
+          "ALCANFORES",
+          "AV CIMATARIO",
+          "BUROCRATA",
+          "CAMPO MILITAR",
+          "EL MIRADOR",
+          "ENSUEÑO",
+          "JACAL",
+          "JARDINES DE LA HACIENDA",
+          "LA GLORIA",
+          "LOMAS DEL MARQUES",
+          "MILENIO",
+          "MILENIO NO100",
+          "PLAZA EL ROBLE SJR",
+          "PEDRO ESCOBEDO",
+          "PEDRO ESCOBEDO II",
+          "REAL DE SAN ISIDRO SJR",
+          "SAN PABLO",
+          "SAN ROQUE",
+          "SANTA FE",
+          "SANTA MARIA MAGDALENA",
+          "SUPERVISION 5",
+          "TECNOLOGICO",
+          "TEQUISQUIAPAN CENTRO"
+        ]
+      },
+
       "supervision1": {
         "departments": [
           "MERCADO DE ABASTOS",
@@ -103,7 +233,7 @@
           "ZIBATA",
           "XENTRIC ZIBATA"
         ]
-      },      
+      },
 
       "supervision3": {
         "departments": [
@@ -210,8 +340,6 @@
       "eyecontrol": {
         "departments": ["EYE CONTROL PRODUCCION"]
       }
-      
-      
     }
   }
 }
