@@ -183,6 +183,32 @@
 
       "supervision1": {
         "departments": [
+          "AV CORREGIDORA NTE",
+          "EL REFUGIO",
+          "EL REFUGIO II",
+          "HACIENDA LA CRUZ",
+          "LA PRADERA I",
+          "LA PRADERA II",
+          "LA POPULAR",
+          "LOS HEROES",
+          "LOS HUERTOS",
+          "MIRANDA",
+          "MENCHACA",
+          "NIÑOS HEROES",
+          "REAL SOLARE",
+          "PLATON",
+          "REFUGIO III",
+          "RINCONES DEL MARQUES",
+          "SUPERVISION 1",
+          "VILLAS DEL REFUGIO",
+          "ZAKIA",
+          "ZIBATA",
+          "XENTRIC ZIBATA"
+        ]
+      },
+
+      "supervision2": {
+        "departments": [
           "MERCADO DE ABASTOS",
           "AV DE LA LUZ",
           "CARRILLO",
@@ -206,32 +232,6 @@
           "TINTERO",
           "TINTERO II",
           "VIÑEDOS"
-        ]
-      },
-
-      "supervision2": {
-        "departments": [
-          "AV CORREGIDORA NTE",
-          "EL REFUGIO",
-          "EL REFUGIO II",
-          "HACIENDA LA CRUZ",
-          "LA PRADERA I",
-          "LA PRADERA II",
-          "LA POPULAR",
-          "LOS HEROES",
-          "LOS HUERTOS",
-          "MIRANDA",
-          "MENCHACA",
-          "NIÑOS HEROES",
-          "REAL SOLARE",
-          "PLATON",
-          "REFUGIO III",
-          "RINCONES DEL MARQUES",
-          "SUPERVISION 1",
-          "VILLAS DEL REFUGIO",
-          "ZAKIA",
-          "ZIBATA",
-          "XENTRIC ZIBATA"
         ]
       },
 
