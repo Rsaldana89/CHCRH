@@ -41,10 +41,10 @@
             <h2>ASISTENCIAS E INCIDENCIAS</h2>
             <div class="selectors">
                 <label for="week-selector">Semana:</label>
-                <select id="week-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
+                <select id="week-selector"></select>
             
                 <label for="year-selector">Año:</label>
-                <select id="year-selector" onchange="updateAttendanceTable(); updateWeekRangeDisplay();"></select>
+                <select id="year-selector"></select>
             
                 <input type="text" id="week-range" readonly style="margin-left: 20px; padding: 5px; border: 1px solid #ccc;">
             
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const today = new Date();
             const formattedDate = today.toLocaleDateString();
             document.getElementById('current-date').textContent = formattedDate;
-            document.getElementById('current-week').textContent = getCurrentWeek();
+            // Cargamos el calendario de nómina y configuramos la semana actual más adelante.
 
             // Cargar privilegios y luego cargar las asistencias con el filtro de departamentos
             fetch('/privilegios.json')
@@ -175,10 +175,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(privileges => {
                     const userPrivileges = privileges.roles[data.role][data.username];
                     if (userPrivileges && userPrivileges.departments) {
-                        // Establecer selectores y mostrar tabla para semana/año actual (según lógica del selector)
-                        populateWeekAndYearSelectors();
-                        updateWeekRangeDisplay();
-                        updateAttendanceTable(); // <- carga según los valores visibles en los selectores
+                        // Establecer selectores y mostrar tabla para semana/año actual usando calendario de nómina.
+                        initializeNominaCalendar();
                     } else {
                         console.error('No se encontraron privilegios para este usuario.');
                     }
@@ -191,6 +189,296 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 let allAttendanceData = [];
+
+// ==================== CALENDARIO DE NÓMINA ====================
+// Se cargará un archivo JSON con los periodos de nómina y se
+// utilizará para poblar los selectores de semana/año y para
+// calcular la semana que corresponde al día actual (regla de hasta
+// miércoles usar periodo anterior).
+
+// Estructuras globales para calendario de nómina
+let NOMINA_CAL = null; // Objeto years -> [periodos]
+let NOMINA_INDEX = {}; // Índice por "año-nominaSemana" -> periodo
+
+/**
+ * Cargar el calendario de nómina desde el archivo JSON ubicado en
+ * "semanas_nomina.json". Construye un índice auxiliar para acceder
+ * rápidamente a un periodo a partir del año y semana de nómina.
+ */
+async function loadNominaCalendar() {
+    try {
+        // Utilizamos una ruta absoluta para asegurar que el archivo se
+        // busque en la raíz de los recursos estáticos (públicos). Si
+        // 'public' es la carpeta estática, '/semanas_nomina.json' se
+        // mapeará correctamente.
+        const response = await fetch('/semanas_nomina.json');
+        if (!response.ok) {
+            throw new Error('No se pudo cargar semanas_nomina.json');
+        }
+        const data = await response.json();
+        NOMINA_CAL = data.years || {};
+        NOMINA_INDEX = {};
+        for (const [year, periods] of Object.entries(NOMINA_CAL)) {
+            periods.forEach(period => {
+                NOMINA_INDEX[`${year}-${period.payroll_week}`] = {
+                    payroll_year: parseInt(year, 10),
+                    payroll_week: period.payroll_week,
+                    start: period.start,
+                    end: period.end,
+                    iso_year: period.iso_year,
+                    iso_week: period.iso_week
+                };
+            });
+        }
+    } catch (err) {
+        console.error('Error cargando calendario de nómina:', err);
+        // Si hay un error al cargar el archivo, notificamos al usuario y
+        // mantenemos NOMINA_CAL como null para que se muestren los selectores
+        // vacíos en vez de fallar silenciosamente.
+        alert('No se pudo cargar el calendario de nómina. Verifique que el archivo semanas_nomina.json exista en la carpeta public.');
+    }
+}
+
+/**
+ * Encontrar el periodo de nómina que contiene una fecha determinada.
+ * Recorre las listas de periodos de cada año y devuelve el periodo
+ * cuyo rango [start, end] incluye la fecha. Devuelve null si no
+ * encuentra coincidencia.
+ * @param {Date} dateObj Fecha a buscar.
+ * @returns {Object|null} Periodo de nómina o null.
+ */
+function findPayrollPeriodByDate(dateObj) {
+    if (!NOMINA_CAL) return null;
+    const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+    for (const [year, periods] of Object.entries(NOMINA_CAL)) {
+        for (const period of periods) {
+            const start = new Date(period.start + 'T00:00:00');
+            const end = new Date(period.end + 'T23:59:59');
+            if (target >= start && target <= end) {
+                return {
+                    payroll_year: parseInt(year, 10),
+                    payroll_week: period.payroll_week,
+                    start: period.start,
+                    end: period.end,
+                    iso_year: period.iso_year,
+                    iso_week: period.iso_week
+                };
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Dado un periodo de nómina, obtener el periodo inmediatamente anterior.
+ * Si la semana es 1, intenta retroceder al último periodo del año anterior.
+ * @param {number} payrollYear Año de nómina actual.
+ * @param {number} payrollWeek Semana de nómina actual.
+ * @returns {Object|null} Periodo anterior o null si no existe.
+ */
+function getPreviousPayrollPeriod(payrollYear, payrollWeek) {
+    if (!NOMINA_CAL) return null;
+    const yearStr = String(payrollYear);
+    const periods = (NOMINA_CAL[yearStr] || []).slice().sort((a, b) => a.payroll_week - b.payroll_week);
+    const idx = periods.findIndex(p => p.payroll_week === payrollWeek);
+    if (idx > 0) {
+        const prev = periods[idx - 1];
+        return {
+            payroll_year: payrollYear,
+            payroll_week: prev.payroll_week,
+            start: prev.start,
+            end: prev.end,
+            iso_year: prev.iso_year,
+            iso_week: prev.iso_week
+        };
+    }
+    // Buscar último periodo del año anterior
+    const prevYearStr = String(payrollYear - 1);
+    const prevPeriods = (NOMINA_CAL[prevYearStr] || []).slice().sort((a, b) => a.payroll_week - b.payroll_week);
+    if (prevPeriods.length > 0) {
+        const last = prevPeriods[prevPeriods.length - 1];
+        return {
+            payroll_year: payrollYear - 1,
+            payroll_week: last.payroll_week,
+            start: last.start,
+            end: last.end,
+            iso_year: last.iso_year,
+            iso_week: last.iso_week
+        };
+    }
+    return null;
+}
+
+/**
+ * Población inicial de selectores usando el calendario de nómina.
+ * Rellena el selector de años con las claves del JSON y el selector de
+ * semanas con las semanas correspondientes al año seleccionado.
+ */
+function populateSelectorsFromNomina() {
+    const weekSelector = document.getElementById('week-selector');
+    const yearSelector = document.getElementById('year-selector');
+    // Limpiar selectores
+    yearSelector.innerHTML = '';
+    weekSelector.innerHTML = '';
+    // Rellenar años ordenados numéricamente
+    const years = Object.keys(NOMINA_CAL || {}).map(y => parseInt(y, 10)).sort((a, b) => a - b);
+    years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelector.appendChild(opt);
+    });
+    // Seleccionar por defecto el último año disponible si no está el actual
+    const currentYear = new Date().getFullYear();
+    if (years.includes(currentYear)) {
+        yearSelector.value = currentYear;
+    } else if (years.length) {
+        yearSelector.value = years[years.length - 1];
+    }
+    fillWeeksForYear(parseInt(yearSelector.value, 10));
+    // Listeners
+    yearSelector.addEventListener('change', () => {
+        const y = parseInt(yearSelector.value, 10);
+        fillWeeksForYear(y);
+        updateWeekRangeDisplayFromNomina();
+        updateAttendanceTableFromNomina();
+    });
+    weekSelector.addEventListener('change', () => {
+        updateWeekRangeDisplayFromNomina();
+        updateAttendanceTableFromNomina();
+    });
+}
+
+/**
+ * Llena el selector de semanas para un año dado utilizando los datos
+ * del calendario de nómina. El valor del option es la semana de nómina
+ * (display) y se almacena en value para referencia. Los periodos se
+ * ordenan por número de semana.
+ * @param {number} payrollYear Año de nómina
+ */
+function fillWeeksForYear(payrollYear) {
+    const weekSelector = document.getElementById('week-selector');
+    weekSelector.innerHTML = '';
+    const periods = NOMINA_CAL[String(payrollYear)] || [];
+    const sorted = periods.slice().sort((a, b) => a.payroll_week - b.payroll_week);
+    sorted.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.payroll_week;
+        opt.textContent = `Semana ${p.payroll_week}`;
+        weekSelector.appendChild(opt);
+    });
+    // Seleccionar la primera semana si no hay valor
+    if (!weekSelector.value && sorted.length) {
+        weekSelector.value = sorted[0].payroll_week;
+    }
+}
+
+/**
+ * Determinar y establecer el periodo predeterminado según la regla: de
+ * domingo a miércoles (inclusive) se utiliza el periodo anterior; de
+ * jueves a sábado se utiliza el periodo actual. Usa la fecha del
+ * sistema y aplica el calendario de nómina.
+ */
+function setDefaultWeekByWednesdayRule() {
+    const yearSelector = document.getElementById('year-selector');
+    const weekSelector = document.getElementById('week-selector');
+    const today = new Date();
+    const day = today.getDay(); // 0 domingo, 1 lunes, ...
+    let period = findPayrollPeriodByDate(today);
+    if (!period) {
+        // Si no hay periodo encontrado, simplemente seleccionar la primera opción
+        return;
+    }
+    // Regla: domingo (0) a miércoles (3) => periodo anterior
+    if (day <= 3) {
+        const prev = getPreviousPayrollPeriod(period.payroll_year, period.payroll_week);
+        if (prev) {
+            period = prev;
+        }
+    }
+    // Ajustar selectores
+    yearSelector.value = period.payroll_year;
+    fillWeeksForYear(period.payroll_year);
+    weekSelector.value = period.payroll_week;
+}
+
+/**
+ * Actualizar la visualización del rango de semana basándose en el
+ * calendario de nómina. Muestra la fecha de inicio y fin (formato
+ * local) en el input week-range.
+ */
+function updateWeekRangeDisplayFromNomina() {
+    const year = document.getElementById('year-selector').value;
+    const week = document.getElementById('week-selector').value;
+    const key = `${year}-${week}`;
+    const period = NOMINA_INDEX[key];
+    if (!period) {
+        document.getElementById('week-range').value = '';
+        return;
+    }
+    const start = new Date(period.start + 'T00:00:00');
+    const end = new Date(period.end + 'T00:00:00');
+    const options = { day: '2-digit', month: 'short' };
+    const rangeText = `${start.toLocaleDateString('es-ES', options)} - ${end.toLocaleDateString('es-ES', options)}`;
+    document.getElementById('week-range').value = `Del ${rangeText}`;
+}
+
+/**
+ * Actualizar la tabla de asistencias utilizando la semana ISO y año ISO
+ * de la nómina seleccionada. Busca el periodo en NOMINA_INDEX y
+ * utiliza iso_week/iso_year para llamar al backend.
+ */
+function updateAttendanceTableFromNomina() {
+    const year = document.getElementById('year-selector').value;
+    const week = document.getElementById('week-selector').value;
+    const key = `${year}-${week}`;
+    const period = NOMINA_INDEX[key];
+    if (!period) {
+        return;
+    }
+    const isoWeek = period.iso_week;
+    const isoYear = period.iso_year;
+    // Leer los privilegios y cargar datos
+    fetch('/privilegios.json')
+        .then(response => response.json())
+        .then(privileges => {
+            const username = document.getElementById('username').textContent;
+            const role = document.getElementById('user-role').textContent;
+            const userPrivileges = privileges.roles[role][username];
+            if (userPrivileges && userPrivileges.departments) {
+                loadAttendanceData(isoWeek, isoYear, userPrivileges.departments);
+            } else {
+                console.error('No se encontraron privilegios para este usuario.');
+            }
+        })
+        .catch(error => console.error('Error al cargar los privilegios:', error));
+}
+
+/**
+ * Inicializa el calendario de nómina y configura los selectores y la
+ * semana actual. Debe llamarse una vez que se hayan obtenido los
+ * privilegios del usuario.
+ */
+async function initializeNominaCalendar() {
+    await loadNominaCalendar();
+    populateSelectorsFromNomina();
+    setDefaultWeekByWednesdayRule();
+    updateWeekRangeDisplayFromNomina();
+    updateAttendanceTableFromNomina();
+    // Actualizar la etiqueta de la semana actual en el panel de info
+    const currentPeriod = findPayrollPeriodByDate(new Date());
+    let displayWeek = '';
+    if (currentPeriod) {
+        const day = new Date().getDay();
+        let period = currentPeriod;
+        if (day <= 3) {
+            const prev = getPreviousPayrollPeriod(currentPeriod.payroll_year, currentPeriod.payroll_week);
+            if (prev) period = prev;
+        }
+        displayWeek = period.payroll_week;
+    }
+    document.getElementById('current-week').textContent = displayWeek;
+}
 
 
 // Control de la dirección de ordenamiento para cada campo
@@ -231,6 +519,82 @@ function sortTableBy(field) {
 }
 
 
+/**
+ * Determine whether a given year has 53 ISO weeks. ISO 8601 dictates that
+ * a year has 53 weeks if it starts on a Thursday, or if it is a leap
+ * year that starts on a Wednesday. We use the JavaScript Date API
+ * (getDay returns 0 for Sunday through 6 for Saturday) to calculate this.
+ *
+ * @param {number} year - Four digit year.
+ * @returns {number} The number of ISO weeks in the year (52 or 53).
+ */
+function weeksInIsoYear(year) {
+    const janFirst = new Date(year, 0, 1);
+    const day = janFirst.getDay();
+    const isLeap = ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0));
+    // If 1 Jan is Thursday (day 4) or it is a leap year and 1 Jan is Wednesday (day 3)
+    if (day === 4 || (isLeap && day === 3)) {
+        return 53;
+    }
+    return 52;
+}
+
+/**
+ * Build the week selector options for a specific year. For most years the
+ * ISO calendar has 52 weeks, but some years (like 2026) have 53. The
+ * function also adjusts the displayed week numbers for special cases. In
+ * particular, for the year 2026 we need to reflect the payroll convention
+ * used by Compaq: the ISO week 1 (29 Dec 2025–4 Jan 2026) is labelled as
+ * week 53, and the subsequent ISO weeks are labelled from 1 onward. This
+ * keeps the database week numbers intact (isoWeek numbers are used as the
+ * option values) while presenting user-friendly labels.
+ *
+ * @param {number} year - Four digit year used to determine week count and
+ *                        special labelling.
+ */
+function buildWeekOptionsForYear(year) {
+    const weekSelector = document.getElementById('week-selector');
+    // Clear existing options
+    weekSelector.innerHTML = '';
+    const totalIsoWeeks = weeksInIsoYear(year);
+    // For year 2026, create 53 options with custom labels. The value
+    // corresponds to the ISO week number in the database. For ISO week 1
+    // (value 1) we label it as "Semana 53" because Compaq treats this
+    // cross-year period as the 53rd pay period. ISO week 2 is labelled
+    // "Semana 1", ISO week 3 as "Semana 2", and so on.
+    if (parseInt(year, 10) === 2026) {
+        // ISO weeks run from 1 to totalIsoWeeks (53). We'll start by
+        // creating an option for ISO week 1 labelled "Semana 53".
+        if (totalIsoWeeks === 53) {
+            const isoWeek1Option = document.createElement('option');
+            isoWeek1Option.value = 1;
+            isoWeek1Option.textContent = 'Semana 53';
+            weekSelector.appendChild(isoWeek1Option);
+        }
+        // Next ISO weeks 2..53 (or to totalIsoWeeks) are labelled 1..52.
+        for (let isoWeek = 2; isoWeek <= totalIsoWeeks; isoWeek++) {
+            const displayWeek = isoWeek - 1; // Map ISO week to displayed week number
+            const option = document.createElement('option');
+            option.value = isoWeek;
+            option.textContent = `Semana ${displayWeek}`;
+            weekSelector.appendChild(option);
+        }
+        return;
+    }
+    // For other years, the ISO week number and display label match.
+    for (let isoWeek = 1; isoWeek <= totalIsoWeeks; isoWeek++) {
+        const option = document.createElement('option');
+        option.value = isoWeek;
+        option.textContent = `Semana ${isoWeek}`;
+        weekSelector.appendChild(option);
+    }
+}
+
+/**
+ * Populate the week and year selectors, set default selections based on
+ * the current date, and register a change handler on the year selector
+ * so that week options update when the user selects a different year.
+ */
 function populateWeekAndYearSelectors() {
     const weekSelector = document.getElementById('week-selector');
     const yearSelector = document.getElementById('year-selector');
@@ -238,30 +602,26 @@ function populateWeekAndYearSelectors() {
     const now = new Date();
     const currentDay = now.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
     const currentYear = now.getFullYear();
-    const currentWeek = getCurrentWeek();
+    const currentIsoWeek = getCurrentIsoWeek();
 
-    // Si es lunes (1) o martes (2), mostrar semana anterior
-    let defaultWeek = currentWeek;
+    // Determinar la semana y año predeterminados. Si estamos a
+    // domingo (0), lunes (1) o martes (2), seleccionamos la semana
+    // anterior; si la semana actual es la primera del año, retrocedemos
+    // al último ISO week del año anterior.
+    let defaultIsoWeek = currentIsoWeek;
     let defaultYear = currentYear;
 
     if (currentDay === 0 || currentDay === 1 || currentDay === 2) {
-        if (currentWeek === 1) {
-            defaultWeek = 52;
+        if (currentIsoWeek === 1) {
+            // Cambiar al último isoWeek del año anterior
             defaultYear = currentYear - 1;
+            defaultIsoWeek = weeksInIsoYear(defaultYear);
         } else {
-            defaultWeek = currentWeek - 1;
+            defaultIsoWeek = currentIsoWeek - 1;
         }
     }
 
-    // Llenar el selector de semanas
-    for (let i = 1; i <= 52; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = `Semana ${i}`;
-        weekSelector.appendChild(option);
-    }
-
-    // Llenar el selector de años
+    // Llenar el selector de años (por ejemplo +/- 5 años alrededor del actual)
     for (let i = currentYear - 5; i <= currentYear + 5; i++) {
         const option = document.createElement('option');
         option.value = i;
@@ -269,32 +629,105 @@ function populateWeekAndYearSelectors() {
         yearSelector.appendChild(option);
     }
 
-    // Establecer valores predeterminados
-    weekSelector.value = defaultWeek;
+    // Construir opciones de semanas según el año predeterminado
+    buildWeekOptionsForYear(defaultYear);
+
+    // Ajustar el valor predeterminado en los selectores
     yearSelector.value = defaultYear;
+    // Para 2026, defaultIsoWeek might need shifting due to custom numbering. Since
+    // we built weekSelector using isoWeek values, we set weekSelector.value
+    // directly to the ISO week value.
+    weekSelector.value = defaultIsoWeek;
+
+    // Actualizar la visualización del rango de semana y la tabla en base a los
+    // valores predeterminados
+    updateWeekRangeDisplay();
+    updateAttendanceTable();
+
+    // Registrar un manejador para el cambio de año. Cada vez que el
+    // usuario seleccione un año diferente, reconstruir las opciones de
+    // semanas y actualizar la visualización.
+    yearSelector.addEventListener('change', function () {
+        const selectedYear = parseInt(this.value, 10);
+        // Guardar la semana seleccionada antes del cambio
+        const previousIsoWeek = parseInt(weekSelector.value, 10);
+        // Reconstruir opciones de semana para el nuevo año
+        buildWeekOptionsForYear(selectedYear);
+        // Establecer la semana seleccionada. Intentamos conservar el mismo
+        // ISO week si existe en el nuevo año; de lo contrario, usamos 1.
+        const maxWeekInNewYear = weeksInIsoYear(selectedYear);
+        let newIsoWeek = previousIsoWeek;
+        if (newIsoWeek > maxWeekInNewYear) {
+            newIsoWeek = maxWeekInNewYear;
+        }
+        weekSelector.value = newIsoWeek;
+        updateWeekRangeDisplay();
+        updateAttendanceTable();
+    });
+
+    // Registrar un manejador para el cambio de semana para actualizar
+    // automáticamente el rango visualizado y la tabla de asistencia
+    weekSelector.addEventListener('change', function () {
+        updateWeekRangeDisplay();
+        updateAttendanceTable();
+    });
 }
 
 
 
 function updateWeekRangeDisplay() {
-    const week = parseInt(document.getElementById('week-selector').value, 10);
-    const year = parseInt(document.getElementById('year-selector').value, 10);
+    // Esta función ahora delega al cálculo basado en el calendario de nómina.
+    updateWeekRangeDisplayFromNomina();
+}
 
+/**
+ * Obtener el número ISO de la semana actual. La semana ISO comienza
+ * en lunes y la primera semana del año es la que contiene el primer
+ * jueves del año. Esta función calcula el número de semana ISO
+ * empleando la fecha actual del sistema.
+ *
+ * @returns {number} Número de semana ISO actual.
+ */
+function getCurrentIsoWeek() {
+    const today = new Date();
+    const year = today.getFullYear();
     const firstDayOfYear = new Date(year, 0, 1);
+    // Determinar el desplazamiento para que la semana inicie en lunes. Si
+    // el 1 de enero cae en domingo (0), el desplazamiento es 6; en caso
+    // contrario es getDay() - 1.
     const daysOffset = (firstDayOfYear.getDay() === 0 ? 6 : firstDayOfYear.getDay() - 1);
-    const startOfWeek = new Date(firstDayOfYear.getTime() + ((week - 1) * 7 - daysOffset) * 24 * 60 * 60 * 1000);
-    const endOfWeek = new Date(startOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000);
-    const options = { day: '2-digit', month: 'short' };
-    const weekRange = `${startOfWeek.toLocaleDateString('es-ES', options)} - ${endOfWeek.toLocaleDateString('es-ES', options)}`;
+    const daysSinceStart = Math.floor((today - firstDayOfYear) / (24 * 60 * 60 * 1000));
+    return Math.floor((daysSinceStart + daysOffset) / 7) + 1;
+}
 
-    document.getElementById('week-range').value = `Del ${weekRange}`;
+/**
+ * Convierte un número de semana ISO a la semana mostrada en el sistema
+ * para un año dado. Para el año 2026, la semana ISO 1 corresponde a
+ * "Semana 53" (ya que Compaq considera esta semana como el último
+ * periodo del año anterior) y la semana ISO n (n≥2) corresponde a
+ * "Semana n-1". Para cualquier otro año, la semana mostrada es igual
+ * al número de semana ISO.
+ *
+ * @param {number} isoWeek - Número de semana ISO (1..53) que se va a
+ *                           convertir.
+ * @param {number} year - Año al que pertenece la semana.
+ * @returns {number} Número de semana para mostrar al usuario.
+ */
+function getDisplayWeekFromIso(isoWeek, year) {
+    const y = parseInt(year, 10);
+    if (y === 2026) {
+        if (isoWeek === 1) {
+            return 53;
+        }
+        return isoWeek - 1;
+    }
+    return isoWeek;
 }
 
 function getCurrentWeek() {
-    const currentDate = new Date();
-    const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
-    const days = Math.floor((currentDate - startOfYear) / (24 * 60 * 60 * 1000));
-    return Math.ceil(days / 7);
+    // Delegar al cálculo ISO para mantener coherencia en todo el sistema. La
+    // función getCurrentIsoWeek() calcula correctamente la semana ISO.
+    return getCurrentIsoWeek();
 }
 
 function loadCurrentWeekAttendance(departments) {
@@ -305,25 +738,10 @@ function loadCurrentWeekAttendance(departments) {
 
 
 function updateAttendanceTable() {
-    const week = document.getElementById('week-selector').value;
-    const year = document.getElementById('year-selector').value;
-
-    // Leer los privilegios del archivo JSON
-    fetch('/privilegios.json')
-        .then(response => response.json())
-        .then(privileges => {
-            const username = document.getElementById('username').textContent;
-            const role = document.getElementById('user-role').textContent;
-            const userPrivileges = privileges.roles[role][username];
-
-            if (userPrivileges && userPrivileges.departments) {
-                // Cargar datos filtrados por departamentos
-                loadAttendanceData(week, year, userPrivileges.departments);
-            } else {
-                console.error('No se encontraron privilegios para este usuario.');
-            }
-        })
-        .catch(error => console.error('Error al cargar los privilegios:', error));
+    // Esta función se mantiene para compatibilidad pero delega a la
+    // versión basada en calendario de nómina. Úsela si no se está
+    // utilizando semanas_nomina.json.
+    updateAttendanceTableFromNomina();
 }
 
 
@@ -704,10 +1122,9 @@ function toggleEdit(button) {
 
 // Funciones de ayuda para obtener la semana actual y la fecha de inicio de una semana ISO
 function getCurrentWeek() {
-    const today = new Date();
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
-    const daysSinceStartOfYear = Math.floor((today - firstDayOfYear) / (24 * 60 * 60 * 1000));
-    return Math.ceil((daysSinceStartOfYear + firstDayOfYear.getDay() + 1) / 7);
+    // Delegar al cálculo ISO para mantener coherencia en todo el sistema. La
+    // función getCurrentIsoWeek() calcula correctamente la semana ISO.
+    return getCurrentIsoWeek();
 }
 
 function getDateOfISOWeek(week, year) {
