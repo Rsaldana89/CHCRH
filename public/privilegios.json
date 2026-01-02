@@ -2,24 +2,36 @@
   "roles": {
     "admin": {
       "managerchc": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
       "adminrh": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
       "managerrh": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
       "vacacionesrh": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       }
     },
     "user": {
       "adminMQ": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
       "adminnomina": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
       "eyeconsultor": {
         "departments": [
@@ -34,30 +46,43 @@
     },
     "manager": {
       "managerSI": {
-        "departments": ["SISTEMAS", "CEDIS"]
+        "departments": [
+          "SISTEMAS",
+          "CEDIS"
+        ]
       },
       "managerEYE": {
-        "departments": ["Solo departamentos que empiezan con EYE"]
+        "departments": [
+          "Solo departamentos que empiezan con EYE"
+        ]
       },
       "jefefinanzas": {
-        "departments": ["PANADERIA", "MANTENIMIENTO", "EMPAQUE GRANOS"]
+        "departments": [
+          "PANADERIA",
+          "MANTENIMIENTO",
+          "EMPAQUE GRANOS"
+        ]
       },
       "jefecedis": {
-        "departments": ["CEDIS"]
+        "departments": [
+          "CEDIS"
+        ]
       },
       "manageratn": {
-        "departments": ["ATENCION A NEGOCIOS"]
+        "departments": [
+          "ATENCION A NEGOCIOS"
+        ]
       },
       "userSI": {
-        "departments": ["Todos"]
+        "departments": [
+          "Todos"
+        ]
       },
-
       "auxoperacion": {
         "departments": [
           "PANADERIA",
           "MANTENIMIENTO",
           "EMPAQUE GRANOS",
-
           "MERCADO DE ABASTOS",
           "AV DE LA LUZ",
           "CARRILLO",
@@ -81,7 +106,6 @@
           "TINTERO",
           "TINTERO II",
           "VIÑEDOS",
-
           "AV CORREGIDORA NTE",
           "EL REFUGIO",
           "EL REFUGIO II",
@@ -103,7 +127,6 @@
           "ZAKIA",
           "ZIBATA",
           "XENTRIC ZIBATA",
-
           "ATELIER",
           "CIUDAD DEL SOL",
           "CIUDAD DEL SOL II",
@@ -128,7 +151,6 @@
           "SUPERVISION 3",
           "VALLE DE SANTIAGO",
           "VILLAS DE SANTIAGO",
-
           "ANDADORES",
           "CANDILES",
           "CANDILES II",
@@ -154,7 +176,6 @@
           "TEJEDA II",
           "VALLE DIAMANTE",
           "VISTA REAL",
-
           "ALCANFORES",
           "AV CIMATARIO",
           "BUROCRATA",
@@ -180,166 +201,176 @@
           "TEQUISQUIAPAN CENTRO"
         ]
       },
-
       "supervision1": {
         "departments": [
-          "AV CORREGIDORA NTE",
-          "EL REFUGIO",
-          "EL REFUGIO II",
+          "PASEOS DE SAN MIGUEL",
+          "LOARCA",
+          "SAN MIGUEL DE ALLENDE",
+          "JURIQUILLA",
+          "REAL DE LA LOMA",
+          "CIUDAD DEL SOL",
+          "VALLE DE SANTIAGO",
+          "PLAZA PALMARES",
+          "CIUDAD DEL SOL II",
+          "SAN MIGUEL DE ALLENDE II",
+          "SAN ISIDRO",
+          "ATELIER",
+          "SAN MIGUEL DE ALLENDE III",
+          "PLAZA GARIBALDI SMA",
+          "PRIVADA JURIQUILLA",
+          "PUERTA NAVARRA",
+          "LOMA BONITA",
+          "SUPERVISION1"
+        ]
+      },
+      "supervision2": {
+        "departments": [
+          "EL MIRADOR",
           "HACIENDA LA CRUZ",
           "LA PRADERA I",
           "LA PRADERA II",
-          "LA POPULAR",
           "LOS HEROES",
-          "LOS HUERTOS",
+          "MILENIO",
+          "MILENIO NO100",
           "MIRANDA",
-          "MENCHACA",
-          "NIÑOS HEROES",
+          "PEDRO ESCOBEDO",
+          "PEDRO ESCOBEDO II",
+          "PLAZA EL ROBLE SJR",
+          "REAL DE SAN ISIDRO SJR",
           "REAL SOLARE",
-          "PLATON",
-          "REFUGIO III",
           "RINCONES DEL MARQUES",
-          "SUPERVISION 1",
+          "TEQUISQUIAPAN CENTRO",
           "VILLAS DEL REFUGIO",
+          "XENTRIC ZIBATA",
           "ZAKIA",
           "ZIBATA",
-          "XENTRIC ZIBATA"
+          "SUPERVISION2"
         ]
       },
-
-      "supervision2": {
+      "supervision3": {
         "departments": [
+          "AV CIMATARIO",
+          "BUROCRATA",
+          "CAMPO MILITAR",
+          "COLONIA CIMATARIO",
+          "EL PUEBLITO",
+          "ENSUEÑO",
+          "JACAL",
+          "JARDINES DE LA HACIENDA",
+          "LA GLORIA",
           "MERCADO DE ABASTOS",
+          "NIÑOS HEROES",
+          "PIRAMIDES",
+          "PLAZAS DEL SOL",
+          "SAN JUAN DE LETRAN",
+          "SANTA FE",
+          "SANTA MARIA MAGDALENA",
+          "SANTUARIOS",
+          "TECNOLOGICO",
+          "SUPERVISION3"
+        ]
+      },
+      "supervision4": {
+        "departments": [
           "AV DE LA LUZ",
           "CARRILLO",
           "CERRITO COLORADO",
           "CERRITO COLORADO II",
           "CERRITO COLORADO III",
-          "EL SOL",
           "EL ROCIO",
+          "EL SOL",
           "GEO PLAZAS",
           "INSURGENTES",
-          "LOMA BONITA",
-          "PLAZAS DEL SOL",
           "PLAZA VERONA",
-          "PUERTA NAVARRA",
-          "SAN JUAN DE LETRAN",
-          "SAUCES",
-          "SAUCES II",
           "SATELITE",
           "SATELITE II",
+          "SAUCES",
+          "SAUCES II",
           "SONTERRA",
-          "SUPERVISION 2",
           "TINTERO",
           "TINTERO II",
-          "VIÑEDOS"
+          "VIÑEDOS",
+          "SUPERVISION4"
         ]
       },
-
-      "supervision3": {
+      "supervision5": {
         "departments": [
-          "ATELIER",
-          "CIUDAD DEL SOL",
-          "CIUDAD DEL SOL II",
-          "JURIQUILLA",
-          "JURIQUILLA II",
-          "LOARCA",
-          "PASEOS DE SAN MIGUEL",
+          "ALCANFORES",
+          "AV CORREGIDORA NTE",
+          "EL REFUGIO",
+          "EL REFUGIO II",
+          "LA POPULAR",
+          "LOMAS DEL MARQUES",
+          "LOS HUERTOS",
+          "MENCHACA",
           "PASEOS DEL PEDREGAL",
           "PIE DE LA CUESTA",
           "PIE DE LA CUESTA II",
+          "PLATON",
           "PLAZA BELEN",
-          "PLAZA GARIBALDI SMA",
           "PLAZA NACIONES",
-          "PLAZA PALMARES",
-          "PRIVADA JURIQUILLA",
-          "REAL DE LA LOMA",
-          "SAN ISIDRO",
-          "SAN MIGUEL DE ALLENDE",
-          "SAN MIGUEL DE ALLENDE II",
-          "SAN MIGUEL DE ALLENDE III",
+          "REFUGIO III",
+          "SAN PABLO",
+          "SAN ROQUE",
           "SOMBRERETE",
-          "SUPERVISION 3",
-          "VALLE DE SANTIAGO",
-          "VILLAS DE SANTIAGO"
+          "VILLAS DE SANTIAGO",
+          "SUPERVISION5"
         ]
       },
-
-      "supervision4": {
+      "supervision6": {
         "departments": [
           "ANDADORES",
           "CANDILES",
           "CANDILES II",
           "CANDILES III",
           "COLINAS DEL SOL",
-          "COLONIA CIMATARIO",
-          "EL PUEBLITO",
           "EL CONDADO",
           "FUENTES DE BALVANERA",
           "LA NEGRETA",
           "LOMAS CALLE 25",
           "LOMAS CALLE 27",
           "LOS OLVERA",
-          "PIRAMIDES",
           "PLAZA CANDILES",
           "PRESIDENTES",
           "PROLONGACION PASTEUR",
           "REAL DEL BOSQUE",
           "REFORMA AGRARIA",
-          "SANTUARIOS",
-          "SUPERVISION 4",
           "TEJEDA",
           "TEJEDA II",
           "VALLE DIAMANTE",
-          "VISTA REAL"
+          "VISTA REAL",
+          "SUPERVISION6"
         ]
       },
-
-      "supervision5": {
-        "departments": [
-          "ALCANFORES",
-          "AV CIMATARIO",
-          "BUROCRATA",
-          "CAMPO MILITAR",
-          "EL MIRADOR",
-          "ENSUEÑO",
-          "JACAL",
-          "JARDINES DE LA HACIENDA",
-          "LA GLORIA",
-          "LOMAS DEL MARQUES",
-          "MILENIO",
-          "MILENIO NO100",
-          "PLAZA EL ROBLE SJR",
-          "PEDRO ESCOBEDO",
-          "PEDRO ESCOBEDO II",
-          "REAL DE SAN ISIDRO SJR",
-          "SAN PABLO",
-          "SAN ROQUE",
-          "SANTA FE",
-          "SANTA MARIA MAGDALENA",
-          "SUPERVISION 5",
-          "TECNOLOGICO",
-          "TEQUISQUIAPAN CENTRO"
-        ]
-      },
-
       "eyemanager": {
-        "departments": ["EYE ADMINISTRACION"]
+        "departments": [
+          "EYE ADMINISTRACION"
+        ]
       },
       "eyetortillas": {
-        "departments": ["EYE TORTILLAS"]
+        "departments": [
+          "EYE TORTILLAS"
+        ]
       },
       "eyequeso": {
-        "departments": ["EYE QUESOS FRESCOS"]
+        "departments": [
+          "EYE QUESOS FRESCOS"
+        ]
       },
       "eyeturno1": {
-        "departments": ["EYE CONVERSION 1ER TURNO"]
+        "departments": [
+          "EYE CONVERSION 1ER TURNO"
+        ]
       },
       "eyeturno2": {
-        "departments": ["EYE CONVERSION 2DO TURNO"]
+        "departments": [
+          "EYE CONVERSION 2DO TURNO"
+        ]
       },
       "eyecontrol": {
-        "departments": ["EYE CONTROL PRODUCCION"]
+        "departments": [
+          "EYE CONTROL PRODUCCION"
+        ]
       }
     }
   }
