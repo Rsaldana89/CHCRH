@@ -465,21 +465,14 @@ async function initializeNominaCalendar() {
     setDefaultWeekByWednesdayRule();
     updateWeekRangeDisplayFromNomina();
     updateAttendanceTableFromNomina();
-    // Actualizar la etiqueta de la semana actual en el panel de info
-    const currentPeriod = findPayrollPeriodByDate(new Date());
-    let displayWeek = '';
-    if (currentPeriod) {
-        const day = new Date().getDay();
-        let period = currentPeriod;
-        // Misma regla CHC usada para el default (domingo a martes => anterior)
-        if (day <= 2) {
-            const prev = getPreviousPayrollPeriod(currentPeriod.payroll_year, currentPeriod.payroll_week);
-            if (prev) period = prev;
-        }
-        displayWeek = period.payroll_week;
-    }
-    document.getElementById('current-week').textContent = displayWeek;
+
+    // Letrero "Semana actual": semana REAL según semanas_nomina.json (sin regla de regresar)
+    const now = new Date();
+    const period = findPayrollPeriodByDate(now);
+
+    document.getElementById('current-week').textContent = period ? period.payroll_week : '';
 }
+
 
 
 // Control de la dirección de ordenamiento para cada campo
