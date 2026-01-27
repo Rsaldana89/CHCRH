@@ -220,6 +220,7 @@ app.get('/admin/personal', authenticateToken, (req, res) => {
         rfc, 
         curp, 
         nss, 
+        email,
         puesto, 
         department_name, 
         start_date, 
@@ -261,6 +262,7 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
         rfc, 
         curp, 
         nss, 
+        email,
         puesto, 
         department_name, 
         start_date, 
@@ -272,12 +274,14 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
         return res.status(400).json({ error: 'Todos los campos obligatorios deben estar presentes' });
     }
     
+    const safeEmail = (email === undefined || email === '') ? null : email;
+
     const query = `
-        INSERT INTO personal (employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO personal (employee_number, full_name, rfc, curp, nss, email, puesto, department_name, start_date, fecha_baja, fecha_reingreso)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(query, [employee_number, full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso], (err, result) => {
+    db.query(query, [employee_number, full_name, rfc, curp, nss, safeEmail, puesto, department_name, start_date, fecha_baja, fecha_reingreso], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ error: 'El número de empleado ya existe' });
@@ -310,7 +314,8 @@ app.post('/admin/personal', authenticateToken, (req, res) => {
                 employee_number, 
                 full_name, 
                 department_name, 
-                start_date 
+                start_date,
+                email: safeEmail
             });
 
             res.status(201).json({ message: 'Empleado y asistencias agregados correctamente' });
@@ -537,6 +542,7 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
         rfc, 
         curp, 
         nss, 
+        email,
         puesto, 
         department_name, 
         start_date, 
@@ -544,12 +550,15 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
         fecha_reingreso 
     } = req.body;
 
+    const safeEmail = (email === undefined || email === '') ? null : email;
+
     const query = `
         UPDATE personal 
         SET full_name = ?, 
             rfc = ?, 
             curp = ?, 
             nss = ?, 
+            email = ?,
             puesto = ?, 
             department_name = ?, 
             start_date = ?, 
@@ -558,7 +567,7 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
         WHERE employee_number = ?
     `;
 
-    db.query(query, [full_name, rfc, curp, nss, puesto, department_name, start_date, fecha_baja, fecha_reingreso, employee_number], (err) => {
+    db.query(query, [full_name, rfc, curp, nss, safeEmail, puesto, department_name, start_date, fecha_baja, fecha_reingreso, employee_number], (err) => {
         if (err) {
             return res.status(500).json({ error: 'Error al actualizar el empleado' });
         }
@@ -571,6 +580,7 @@ app.put('/admin/personal/:employee_number', authenticateToken, (req, res) => {
                 rfc,
                 curp,
                 nss,
+                email: safeEmail,
                 puesto,
                 department_name,
                 start_date,

@@ -165,6 +165,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email">Correo electrónico:</label>
+                    <input type="email" id="email" name="email" maxlength="255" placeholder="usuario@dominio.com">
+                </div>
+
+                <div class="form-group">
                     <label for="puesto">*Puesto:</label>
                     <select id="puesto" name="puesto" required></select>
                 </div>
@@ -680,6 +685,7 @@ function sortPersonal(criteria) {
         rfc: document.getElementById('rfc').value || null,
         curp: document.getElementById('curp').value || null,
         nss: document.getElementById('nss').value || null,
+        email: document.getElementById('email').value || null,
         puesto: document.getElementById('puesto').value || null,
         department_name: document.getElementById('department_name').value,
         start_date: document.getElementById('start_date').value,
@@ -771,6 +777,7 @@ function sortPersonal(criteria) {
     document.getElementById('rfc').value = employee.rfc || '';
     document.getElementById('curp').value = employee.curp || '';
     document.getElementById('nss').value = employee.nss || '';
+    document.getElementById('email').value = employee.email || '';
     document.getElementById('puesto').value = employee.puesto || '';
     document.getElementById('department_name').value = employee.department_name;
 
