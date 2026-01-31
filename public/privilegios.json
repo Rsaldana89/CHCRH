@@ -20,6 +20,16 @@
         "departments": [
           "Todos"
         ]
+      },
+      "eyemanager": {
+        "departments": [
+          "EYE ADMINISTRACION",
+          "EYE TORTILLAS",
+          "EYE QUESOS FRESCOS",
+          "EYE CONVERSION 1ER TURNO",
+          "EYE CONVERSION 2DO TURNO",
+          "EYE CONTROL PRODUCCION"
+        ]
       }
     },
     "user": {
@@ -343,11 +353,6 @@
           "VALLE DIAMANTE",
           "VISTA REAL",
           "SUPERVISION 6"
-        ]
-      },
-      "eyemanager": {
-        "departments": [
-          "EYE ADMINISTRACION"
         ]
       },
       "eyetortillas": {
