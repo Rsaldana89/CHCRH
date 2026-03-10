@@ -211,7 +211,10 @@
           "SUPERVISION 5",
           "TECNOLOGICO",
           "TEQUISQUIAPAN CENTRO",
-          "ZAKIA ZIZANA"
+          "ZAKIA ZIZANA",
+          "MARQUES QUERETANO",
+          "EJIDO SAN MIGUEL",
+          "LOARCA II"
         ]
       },
       "supervision1": {
@@ -294,8 +297,10 @@
           "CERRITO COLORADO III",
           "EL ROCIO",
           "EL SOL",
+          "EJIDO SAN MIGUEL",
           "GEO PLAZAS",
           "INSURGENTES",
+          "LOARCA II",
           "PLAZA VERONA",
           "SATELITE",
           "SATELITE II",
@@ -318,6 +323,7 @@
           "LOMAS DEL MARQUES",
           "LOS HUERTOS",
           "MENCHACA",
+          "MARQUES QUERETANO",
           "PASEOS DEL PEDREGAL",
           "PIE DE LA CUESTA",
           "PIE DE LA CUESTA II",
