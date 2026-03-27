@@ -107,6 +107,7 @@
           "PLAZA VERONA",
           "PUERTA NAVARRA",
           "SAN JUAN DE LETRAN",
+          "SAN JOSE EL ALTO",
           "SAUCES",
           "SAUCES II",
           "SATELITE",
@@ -214,7 +215,8 @@
           "ZAKIA ZIZANA",
           "MARQUES QUERETANO",
           "EJIDO SAN MIGUEL",
-          "LOARCA II"
+          "LOARCA II",
+          "LAS AGUILAS SJR"
         ]
       },
       "supervision1": {
@@ -246,6 +248,7 @@
           "HACIENDA LA CRUZ",
           "LA PRADERA I",
           "LA PRADERA II",
+          "LAS AGUILAS SJR",
           "LOS HEROES",
           "MILENIO",
           "MILENIO NO100",
@@ -331,6 +334,7 @@
           "PLAZA BELEN",
           "PLAZA NACIONES",
           "REFUGIO III",
+          "SAN JOSE EL ALTO",
           "SAN PABLO",
           "SAN ROQUE",
           "SOMBRERETE",
